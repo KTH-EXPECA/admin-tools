@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Run this on mgmt router:
-# wget https://raw.githubusercontent.com/KTH-EXPECA/admin-tools/main/scan.py
+# curl -LJO https://raw.githubusercontent.com/KTH-EXPECA/admin-tools/main/scan.py
 # python scan.py
 
 import socket
