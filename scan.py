@@ -20,7 +20,7 @@ hosts = {
         'port' : 22
     },
     'ptp-clock.expeca' : {
-        'port' : 22
+        'port' : 80
     },
     'storage-01.expeca' : {
         'port' : 22
