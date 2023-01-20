@@ -17,7 +17,7 @@ hosts = {
         'port' : 22
     },
     'ipmi-switch-01.expeca' : {
-        'port' : 22
+        'port' : 80
     },
     'ptp-clock.expeca' : {
         'port' : 80
