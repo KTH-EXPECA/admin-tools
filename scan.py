@@ -16,7 +16,7 @@ hosts = {
     'tenant-switch-01.expeca' : {
         'port' : 22
     },
-    'ptp-switch-01.expeca' : {
+    'ipmi-switch-01.expeca' : {
         'port' : 22
     },
     'ptp-clock.expeca' : {
