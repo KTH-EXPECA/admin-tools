@@ -64,14 +64,14 @@ hosts = {
 }
 
 # Print a nice banner with information on which host we are about to scan
-print("-" * 90)
-print ("{:<30} {:<20} {:<10} {:<15} {:<20}".format('HOST','IP','PORT','STATUS','SSH'))
+print("-" * 100)
+print ("{:<20} {:<20} {:<10} {:<10} {:<15} {:<20}".format('HOST','IP','PORT','STATUS','SSH', 'PASSWORD'))
 
 for host in hosts:
     remoteServer = host
     port = hosts[host]['port']
 
-    print("-" * 90)
+    print("-" * 100)
 
     # We also put in some error handling for catching errors             
     try:
@@ -91,6 +91,14 @@ for host in hosts:
         try:
             ssh.connect(remoteServerIP, username=USER, key_filename=SSHKEY)
             resStrSSH = 'Success'
+
+            stdin, stdout, stderr = ssh.exec_command("sudo -n true")
+            result = stdout.channel.recv_exit_status()    # status is 0
+            if result == 0:
+                resStrSUDO = 'is passwordless'
+            else:
+                resStrSUDO = 'needs a password'
+
         except (paramiko.ssh_exception.BadHostKeyException, paramiko.ssh_exception.AuthenticationException,
             paramiko.ssh_exception.SSHException) as e:
             resStrSSH = 'Fail'
@@ -105,6 +113,6 @@ for host in hosts:
         print("Couldn't connect to server")
         sys.exit()
 
-    print ("{:<30} {:<20} {:<10} {:<15} {:<20}".format(remoteServer,remoteServerIP,port,resStr, resStrSSH))
+    print ("{:<20} {:<20} {:<10} {:<10} {:<15} {:<20}".format(remoteServer,remoteServerIP,port,resStr, resStrSSH, resStrSUDO))
 
-print("-" * 90)
+print("-" * 100)
