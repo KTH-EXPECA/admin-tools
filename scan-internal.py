@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Make sure the following entries are in /etc/hosts:
 # 10.20.111.1 storage-01
 # 10.20.111.2 worker-01
