@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Add the following entries to /etc/hosts
+# Make sure the following entries are in /etc/hosts:
 # 10.20.111.1 storage-01
 # 10.20.111.2 worker-01
 # 10.20.111.5 worker-02
