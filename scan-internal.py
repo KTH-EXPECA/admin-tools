@@ -58,8 +58,8 @@ hosts = {
 }                             
                               
 # Print a nice banner with information on which host we are about to scan
-print "-" * 90                                                           
-print ("{:<30} {:<20} {:<10} {:<20}".format('HOST','IP','PORT','STATUS'))
+print("-" * 90)                                                          
+print("{:<30} {:<20} {:<10} {:<20}".format('HOST','IP','PORT','STATUS'))
                                                                          
 for host in hosts:                                                       
     remoteServer = host                                                  
@@ -90,6 +90,6 @@ for host in hosts:
         print "Couldn't connect to server"                               
         sys.exit()                                                       
                                                                          
-    print ("{:<30} {:<20} {:<10} {:<20}".format(remoteServer,remoteServerIP,port,resStr))
+    print("{:<30} {:<20} {:<10} {:<20}".format(remoteServer,remoteServerIP,port,resStr))
                                                                                          
-print "-" * 90
+print("-" * 90)
