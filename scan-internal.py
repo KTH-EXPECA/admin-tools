@@ -13,7 +13,7 @@
 # 10.20.111.11 worker-10
 # Run this on openstack controller:
 # curl -LJO https://raw.githubusercontent.com/KTH-EXPECA/admin-tools/main/scan-internal.py
-# python scan-control.py
+# python3 scan-control.py
 
 import socket
 import subprocess
