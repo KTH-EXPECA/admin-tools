@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # install paramiko package: pip3 install paramiko
-# Make sure the following entries are in /etc/hosts:
+# 1) Make sure the following entries are in /etc/hosts:
 # 10.20.111.1 storage-01
 # 10.20.111.2 worker-01
 # 10.20.111.5 worker-02
@@ -12,7 +12,8 @@
 # 10.20.111.9 worker-08
 # 10.20.111.10 worker-09
 # 10.20.111.11 worker-10
-# Run this on openstack controller:
+# 2) Make sure controller's public key is added to all workers' ssh authorized_key
+# 3) Run this on openstack controller:
 # curl -LJO https://raw.githubusercontent.com/KTH-EXPECA/admin-tools/main/scan-internal.py
 # python3 scan-control.py
 
