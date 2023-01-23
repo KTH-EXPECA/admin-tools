@@ -1,4 +1,5 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# install paramiko package: pip3 install paramiko
 # Make sure the following entries are in /etc/hosts:
 # 10.20.111.1 storage-01
 # 10.20.111.2 worker-01
@@ -18,7 +19,11 @@
 import socket
 import subprocess
 import sys
+import paramiko
 from datetime import datetime
+
+USER = 'expeca'
+SSHKEY = '/home/expeca/.ssh/id_rsa.pub'
 
 # Define hosts to scan
 hosts = {
@@ -54,42 +59,51 @@ hosts = {
     },
     'worker-10' : {
         'port' : 22
-    }                       
-}                             
-                              
+    }
+}
+
 # Print a nice banner with information on which host we are about to scan
-print("-" * 90)                                                          
-print("{:<30} {:<20} {:<10} {:<20}".format('HOST','IP','PORT','STATUS'))
-                                                                         
-for host in hosts:                                                       
-    remoteServer = host                                                  
-    port = hosts[host]['port']                                           
-                                                                         
+print("-" * 90)
+print ("{:<30} {:<20} {:<10} {:<15} {:<20}".format('HOST','IP','PORT','STATUS','SSH'))
+
+for host in hosts:
+    remoteServer = host
+    port = hosts[host]['port']
+
     print("-" * 90)
-                                                                         
+
     # We also put in some error handling for catching errors             
-    try:                                                                 
-        remoteServerIP  = socket.gethostbyname(remoteServer)             
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         
-        sock.settimeout(0.5)                                             
-        result = sock.connect_ex((remoteServerIP, port))                 
-        sock.close()                                                     
-        if result == 0:                                                  
-            resStr = 'Up'                                                
-        else:                                                            
-            resStr = 'Down'                                              
-                                                                         
-    except KeyboardInterrupt:                                            
+    try:
+        remoteServerIP  = socket.gethostbyname(remoteServer)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(0.5)
+        result = sock.connect_ex((remoteServerIP, port))
+        sock.close()
+        if result == 0:
+            resStr = 'Up'
+        else:
+            resStr = 'Down'
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+        try:
+            ssh.connect(remoteServerIP, username=USER, key_filename=SSHKEY)
+            resStrSSH = 'Success'
+        except (paramiko.ssh_exception.BadHostKeyException, paramiko.ssh_exception.AuthenticationException,
+            paramiko.ssh_exception.SSHException) as e:
+            resStrSSH = 'Fail'
+
+    except KeyboardInterrupt:
         print("You pressed Ctrl+C")
-        sys.exit()        
-    except socket.gaierror:                                              
-        remoteServerIP = '-'                                             
-        resStr = 'Hostname not found'                                    
-                                                                         
-    except socket.error:                                                 
+        sys.exit()
+    except socket.gaierror:
+        remoteServerIP = '-'
+        resStr = 'Hostname not found'
+    except socket.error:
         print("Couldn't connect to server")
-        sys.exit()                                                       
-                                                                         
-    print("{:<30} {:<20} {:<10} {:<20}".format(remoteServer,remoteServerIP,port,resStr))
-                                                                                         
+        sys.exit()
+
+    print ("{:<30} {:<20} {:<10} {:<15} {:<20}".format(remoteServer,remoteServerIP,port,resStr, resStrSSH))
+
 print("-" * 90)
