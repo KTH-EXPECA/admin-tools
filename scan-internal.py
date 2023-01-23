@@ -13,7 +13,8 @@
 # 10.20.111.10 worker-09
 # 10.20.111.11 worker-10
 # 2) Make sure controller's public key is added to all workers' ssh authorized_key
-# 3) Run this on openstack controller:
+# 3) Make sure 'expeca' user is a passwordless user on all workers
+# 4) Run this on openstack controller to check:
 # curl -LJO https://raw.githubusercontent.com/KTH-EXPECA/admin-tools/main/scan-internal.py
 # python3 scan-control.py
 
