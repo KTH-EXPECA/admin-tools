@@ -9,7 +9,8 @@ import openpyxl as pyxl
 
 
 omit_columns = ["*"]         # Omit columns that includes any of these strings in the header
-omit_rows = ["TENANT"]       # Omit rows that includes any of these strings in the row cells
+keep_rows = ["TENANT"]       # If column header is "ROLE", keep only rows that includes any of these strings in the row cells
+included_tabs = ["Worker Nodes"]       # List only tabs that includes any of these strings in the row cells
 
 
 
@@ -56,15 +57,17 @@ def filter_rows_cols(table):
     headerrow = table[0]
 
     row_filtered_table = []
-    for tablerow in table:
+    for row, tablerow in enumerate(table):
         keeprow = True
-        for cell in tablerow:
-            for omitstring in omit_rows:
-                if omitstring in str(cell):               # Do not include rows with omit_rows content in the row
-                    keeprow = False  
+        if row > 0:
+            for col, cell in enumerate(tablerow):
+                if "ROLE" in headerrow[col]:
+                    keeprow = False
+                    if str(cell) in keep_rows:             # If column heading is "ROLE", then include only rows with keep_rows content in the row
+                            keeprow = True  
         if keeprow:
               row_filtered_table.append(tablerow)
-
+    
     filtered_table = []
     for tablerow in row_filtered_table:
         newrow = []
@@ -175,8 +178,9 @@ def main():
     wb = pyxl.load_workbook(infname)
  
     for sheet in wb:
-        sheetlines = excel_to_md(sheet)
-        linelist.extend(sheetlines)
+        if sheet.title in included_tabs:
+            sheetlines = excel_to_md(sheet)
+            linelist.extend(sheetlines)
 
     with open(outfname, "w") as f:
         for line in linelist:
