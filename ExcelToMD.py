@@ -2,8 +2,6 @@
 # Input 1: File name of Excel file (full path)
 # Input 2: File name of markdown file (full path)
 
-import pytablereader as ptr
-import pytablewriter as ptw
 import sys
 import openpyxl as pyxl
 
