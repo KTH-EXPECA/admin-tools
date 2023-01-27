@@ -60,9 +60,11 @@ def filter_rows_cols(table):
         if row > 0:
             for col, cell in enumerate(tablerow):
                 if "ROLE" in headerrow[col]:
-                    keeprow = False
                     if str(cell) in keep_rows:             # If column heading is "ROLE", then include only rows with keep_rows content in the row
-                            keeprow = True  
+                        keeprow = True  
+                    else:
+                        keeprow = False  
+
         if keeprow:
               row_filtered_table.append(tablerow)
     
