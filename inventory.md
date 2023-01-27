@@ -21,7 +21,7 @@
 <br/><br/>
 <br/><br/>
 
-|NIC      |MODEL                |CPU MODEL                                    |CORES    |TOTAL RAM|
+|ID       |MODEL                |CPU MODEL                                    |CORES    |TOTAL RAM|
 |---------|---------------------|---------------------------------------------|---------|---------|
 |worker-02|Dell PowerEdge R750xs|2x Intel(R) Xeon(R) Silver 4314 CPU @ 2.40GHz|32 (2x16)|128 GB   |
 
