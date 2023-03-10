@@ -1,0 +1,27 @@
+polling_interval_seconds: 300
+exporter_port: 9000
+
+
+collectors:
+
+- collector_name: expeca-serverscan-collector
+  metrics:
+  - metric_name: expeca_server_status
+    metric_descr: ExPECA Server Status
+    metric_type: gauge
+    labels:
+    - remoteServer
+    - remoteServerIP
+    - port
+    - resStr
+    - resStrSSH
+    - resStrSUDO
+
+# - collector_name: prometheus-ep5g-collector
+#   metrics:
+#   - metric_name: expeca_ep5g_latency
+#     metric_descr: ExPECA Ericsson Private 5G Latency
+#     metric_type: gauge
+#     labels: []
+
+
