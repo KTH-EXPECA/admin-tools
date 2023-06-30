@@ -1,0 +1,139 @@
+alerting:
+  alertmanagers:
+  - static_configs:
+    - targets:
+      - 10.20.111.100:9093
+global:
+  evaluation_interval: 15s
+  external_labels:
+    monitor: kolla
+  scrape_interval: 60s
+  scrape_timeout: 10s
+rule_files:
+- /etc/prometheus/baremetal.rules.yml
+- /etc/prometheus/mysql.rules.yml
+- /etc/prometheus/cron.rules.yml
+- /etc/prometheus/control.rules.yml
+scrape_configs:
+- job_name: prometheus
+  static_configs:
+  - targets:
+    - 10.20.111.100:9090
+- job_name: node
+  static_configs:
+  - labels:
+      hostname: controller-01
+    targets:
+    - 10.20.111.100:9100
+  - labels:
+      hostname: storage-01
+    targets:
+    - 10.20.111.1:9100
+  - labels:
+      hostname: worker-01
+    targets:
+    - 10.20.111.2:9100
+  - labels:
+      hostname: worker-02
+    targets:
+    - 10.20.111.5:9100
+  - labels:
+      hostname: worker-03
+    targets:
+    - 10.20.111.6:9100
+  - labels:
+      hostname: worker-04
+    targets:
+    - 10.20.111.7:9100
+  - labels:
+      hostname: worker-05
+    targets:
+    - 10.20.111.3:9100
+  - labels:
+      hostname: worker-06
+    targets:
+    - 10.20.111.4:9100
+  - labels:
+      hostname: worker-07
+    targets:
+    - 10.20.111.8:9100
+  - labels:
+      hostname: worker-08
+    targets:
+    - 10.20.111.9:9100
+  - labels:
+      hostname: worker-09
+    targets:
+    - 10.20.111.10:9100
+  - labels:
+      hostname: worker-10
+    targets:
+    - 10.20.111.11:9100
+# - job_name: mysqld
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9104
+# - job_name: haproxy
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9101
+# - job_name: rabbitmq
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:15692
+# - job_name: memcached
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9150
+# - job_name: cadvisor
+#   static_configs:
+#   - labels:
+#       hostname: controller-01
+#     targets:
+#     - 10.20.111.100:18080
+#   - labels:
+#       hostname: storage-01
+#     targets:
+#     - 10.20.111.1:18080
+# - job_name: fluentd
+#   static_configs:
+#   - labels:
+#       hostname: controller-01
+#     targets:
+#     - 10.20.111.100:24231
+#   - labels:
+#       hostname: storage-01
+#     targets:
+#     - 10.20.111.1:24231
+- honor_labels: true
+  job_name: openstack_exporter
+  scrape_interval: 5m
+  scrape_timeout: 2m
+  static_configs:
+  - targets:
+    - 10.20.111.100:9198
+# - job_name: elasticsearch_exporter
+#   scrape_interval: 60s
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9108
+# - job_name: pushgateway
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9099
+# - job_name: alertmanager
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9093
+- job_name: expeca_exporter
+  static_configs:
+  - targets:
+    - 10.20.111.100:9000
+# - job_name: expeca_exporter_vps
+#   static_configs:
+#   - targets:
+#     - 91.226.221.110:9000
+# - job_name: snmp_exporter
+#   static_configs:
+#   - targets:
+#     - 10.20.111.100:9116

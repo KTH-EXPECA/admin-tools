@@ -3,6 +3,7 @@
 # can "scrape" the metrics into its database.
 # A config file in YAML format defines the collector scripts (separate Python scripts) and their corresponding metrics,
 # so that new collectors and/or metrics can be added easily.
+# Usage: python3 expeca-exporter &
 
 import time
 from prometheus_client import start_http_server, Gauge, Counter
@@ -19,25 +20,6 @@ eventlogsize = 3000              # Number of lines allowed in the event log. Old
 
 os.chdir(sys.path[0])            # Set current directory to script directory
 
-
-
-# # Writes time stamp plus text into event log file
-# def logevent(logtext):
-#     with open(eventlogfname, "a") as f:
-#         now = datetime.now()
-#         date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-#         f.write(date_time + " " + logtext + "\n")
-#         f.close
-
-    
-#     # Example: cat event.log | tail -3000 > event.log
-#     command = "cat " + eventlogfname + " | tail -" + str(eventlogsize) + " > " + eventlogfname      # Cap the size of the event log
-#     print(command)
-#     os.system(command)
-#     # sp.run(command.split(), shell=True)
-#     print("done")
-
-#     return
 
 # Writes time stamp plus text into event log file
 def logevent(logtext):
@@ -93,17 +75,32 @@ def main():
             metric_dict[metric["metric_name"]] = metric_item
             config_labels[metric["metric_name"]] = metric["labels"]
 
+
     while True:
+
+        # logevent("Exporter round start")
+
+        # for collector in config["collectors"]:
+        #     for metric in collector["metrics"]:
+        #         metric_dict[metric["metric_name"]].clear()
 
         for collector in config["collectors"]:
             try:
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
                 collector_ok = True
+                # print(collector["collector_name"] + " ok")
             except:
                 collector_ok = False
+                # logevent("expeca_exporter: Collector " + collector["collector_name"] + " failed")
+                # print(collector["collector_name"] + " Not ok")
+
+            for metric in collector["metrics"]:
+                metric_dict[metric["metric_name"]].clear()
+
 
             if collector_ok:
+
                 for dataitem in datalist:
                     # Update Prometheus metrics
                     metric_item = metric_dict[dataitem["metric_name"]]
@@ -113,10 +110,10 @@ def main():
                             metric_item.labels(*value_list).set(dataitem["value"])
                         else:
                             logevent("Label problem for metric " + dataitem["metric_name"])
-                            logevent("Config labels:", config_labels[dataitem["metric_name"]])
-                            logevent("Collector labels:", label_list)
+                            # logevent("Config labels:", config_labels[dataitem["metric_name"]])
+                            # logevent("Collector labels:", label_list)
                         
-
+        # logevent("Exporter round end")
         time.sleep(polling_interval_seconds)
 
 
