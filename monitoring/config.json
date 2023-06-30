@@ -1,0 +1,41 @@
+{
+    "command": "/opt/prometheus/prometheus --config.file /etc/prometheus/prometheus.yml --web.listen-address 130.237.11.99:9090 --web.external-url=http://130.237.11.99:9090 --storage.tsdb.path /var/lib/prometheus",
+    "config_files": [
+        {
+            "source": "/var/lib/kolla/config_files/prometheus.yml",
+            "dest": "/etc/prometheus/prometheus.yml",
+            "owner": "prometheus",
+            "perm": "0600"
+        },
+        {
+            "source": "/var/lib/kolla/config_files/extras/*",
+            "dest": "/etc/prometheus/extras/",
+            "preserve_properties": true,
+            "optional": true
+        }
+        ,{
+            "source": "/var/lib/kolla/config_files/*.rules.yml",
+            "dest": "/etc/prometheus/",
+            "optional": true,
+            "owner": "prometheus",
+            "perm": "0600"
+        }
+    ],
+    "permissions": [
+        {
+            "path": "/data",
+            "owner": "prometheus:kolla",
+            "recurse": true
+        },
+        {
+            "path": "/var/log/kolla/prometheus",
+            "owner": "prometheus:kolla",
+            "recurse": true
+        },
+        {
+            "path": "/etc/prometheus/extras/",
+            "owner": "prometheus:kolla",
+            "recurse": true
+        }
+    ]
+}
