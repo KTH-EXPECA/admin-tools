@@ -29,7 +29,7 @@ os.chdir(sys.path[0])      # Set current directory to script directory
 
 
 USER = 'expeca'
-SSHKEY = '/home/expeca/.ssh/id_rsa.pub'
+SSHKEY = '/home/expeca/.ssh/id_rsa'
 
 # Define hosts to scan
 hosts = {
@@ -95,9 +95,11 @@ for host in hosts:
         
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
+
 
         try:
-            ssh.connect(remoteServerIP, username=USER, key_filename=SSHKEY)
+            ssh.connect(remoteServerIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
             resStrSSH = 'Success'
 
             stdin, stdout, stderr = ssh.exec_command("sudo -n true")
