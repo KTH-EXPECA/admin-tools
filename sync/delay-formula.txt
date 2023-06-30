@@ -1,0 +1,25 @@
+Cable propagation delay for GNSS signal
+
+D = (L * C)/V
+Where:
+D = Cable delay in nanoseconds
+L = Cable length in feet
+C = Constant derived from velocity of light: 1.016
+V = Nominal velocity of propagation expressed as decimal, i.e. %66 = 0.66 Value is provided by cable manufacturer.
+
+
+With L = 164.042 feet (50 meter) and V = 0.83,
+D = 200.803 nanoseconds.
+
+With L = 170.60368 feet (52 meter) and V = 0.83,
+D = 208.8353480481928 nanoseconds.
+plus 42 ns active antenna delay
+= 250.8353480481928 ns total delay
+251 ns set as delay in GM clock
+
+With L = 213.254593176 feet (65 meter) and V = 0.83,
+D = 261.0441767070072 nanoseconds.
+plus 42 ns active antenna delay
+= 303.0441767070072 ns total delay
+303 ns set as delay in GM clock
+
