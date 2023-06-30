@@ -1,0 +1,1528 @@
+consumes:
+- application/json
+produces:
+- application/json
+swagger: "2.0"
+info:
+  description: Ericsson Private 5G
+  title: Cloud REST API Specification - Enterprise
+  version: v2
+host: 
+basePath: /public
+paths:
+  /v2/organization/{OrganizationName}/site/{SiteName}/kpi/latency:
+    get:
+      security:
+      - ApiKey: []
+      description: Show latency data for a Site
+      tags:
+      - KPI
+      summary: Show latency
+      operationId: ShowLatencyKpi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: Watchdog to get latency for
+        name: imsi
+        in: query
+      responses:
+        "200":
+          description: If the latency data is successfully retrieved
+          schema:
+            $ref: '#/definitions/LatencyResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization or Site is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/kpi/throughput:
+    get:
+      security:
+      - ApiKey: []
+      description: Show throughput data for a Site
+      tags:
+      - KPI
+      summary: Show throughput
+      operationId: ShowThroughputKpi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the throughput data is successfully retrieved
+          schema:
+            $ref: '#/definitions/ThroughputResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization or Site is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/kpi/topdevices:
+    get:
+      security:
+      - ApiKey: []
+      description: Show top devices data consumption for a Site
+      tags:
+      - KPI
+      summary: Show top devices data consumption
+      operationId: ShowTopDevicesKpi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the top device data consumption is successfully retrieved
+          schema:
+            $ref: '#/definitions/TopConsumptionDevicesResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization or Site is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/apn:
+    get:
+      security:
+      - ApiKey: []
+      description: List APNs (Access Point Names)
+      tags:
+      - APN
+      summary: List APNs
+      operationId: ListApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the APN list is successfully returned
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ApnResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+    put:
+      security:
+      - ApiKey: []
+      description: Update an APN (Access Point Name)
+      tags:
+      - APN
+      summary: Update APN
+      operationId: UpdateApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - description: Body
+        name: Payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ApnUpdatePayloadV2'
+      responses:
+        "200":
+          description: If the APN is successfully updated
+          schema:
+            $ref: '#/definitions/ApnResponseV2'
+        "400":
+          description: If the parameter values are invalid
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found
+        "409":
+          description: If the APN name is reserved or if the CIDR overlap with existing
+            ones
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+    post:
+      security:
+      - ApiKey: []
+      description: Create a new APN (Access Point Name)
+      tags:
+      - APN
+      summary: Create APN
+      operationId: CreateApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - description: Body
+        name: Payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ApnPayloadV2'
+      responses:
+        "201":
+          description: If the APN is successfully created
+          schema:
+            $ref: '#/definitions/ApnResponseV2'
+          headers:
+            Location:
+              type: string
+              description: Location for created resource
+        "400":
+          description: If the parameter values are invalid
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "409":
+          description: If the APN name is reserved, if the APN name already in use
+            or if the CIDR overlaps with existing ones
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/apn/nextcidr:
+    get:
+      security:
+      - ApiKey: []
+      description: Get the next available CIDR
+      tags:
+      - APN
+      summary: Get next CIDR
+      operationId: NextCidrApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the next available CIDR is successfully returned
+          schema:
+            $ref: '#/definitions/CIDRResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/apn/overlap:
+    post:
+      security:
+      - ApiKey: []
+      description: Check if provided CIDR overlaps with existing ones
+      tags:
+      - APN
+      summary: Check CIDR overlap
+      operationId: OverlapApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - description: Body
+        name: Payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/OverlapApnPayloadV2'
+      responses:
+        "200":
+          description: If the CIDR does not overlap with existing ones
+        "400":
+          description: If the CIDR has invalid format
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "409":
+          description: If the CIDR overlaps with existing ones
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/apn/{ApnName}:
+    get:
+      security:
+      - ApiKey: []
+      description: Show an APN (Access Point Name)
+      tags:
+      - APN
+      summary: Show APN
+      operationId: ShowApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: APN name
+        name: ApnName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the APN is successfully returned
+          schema:
+            $ref: '#/definitions/ApnResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found
+        "500":
+          description: Internal Server Error
+    delete:
+      security:
+      - ApiKey: []
+      description: Delete an APN (Access Point Name)
+      tags:
+      - APN
+      summary: Delete APN
+      operationId: DeleteApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: APN name
+        name: ApnName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the APN is successfully deleted
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found
+        "409":
+          description: If at least one IMSI exists for this APN
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/apn/{ApnName}/nextip:
+    get:
+      security:
+      - ApiKey: []
+      description: Get the next available/suggested IP address in the APN
+      tags:
+      - APN
+      summary: Get next IP
+      operationId: NextIpApn_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: APN name
+        name: ApnName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the next IP address is successfully returned
+          schema:
+            $ref: '#/definitions/NextIpResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/imsi:
+    get:
+      security:
+      - ApiKey: []
+      description: List IMSIs
+      tags:
+      - IMSI
+      summary: List IMSIs
+      operationId: ListImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: integer
+        description: Page number
+        name: page
+        in: query
+      - type: integer
+        description: Results per page
+        name: perpage
+        in: query
+      - enum:
+        - DeviceName
+        - SegmentName
+        - Status
+        - Imsi
+        type: string
+        default: DeviceName
+        description: 'What value to sort on. Default: DeviceName'
+        name: sorton
+        in: query
+      - enum:
+        - ASC
+        - DESC
+        type: string
+        default: ASC
+        description: 'Sort in ascending or descending order. Default: ASC'
+        name: order
+        in: query
+      - type: string
+        description: Search string
+        name: search
+        in: query
+      - type: boolean
+        description: Whether watchdogs should be returned
+        name: watchdog
+        in: query
+      - type: array
+        items:
+          enum:
+          - Watchdog
+          - Online
+          - Disconnected
+          - Disabled
+          - SIM not written
+          type: string
+        description: Filter the list
+        name: filters
+        in: query
+      responses:
+        "200":
+          description: If the IMSI list is successfully returned
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ImsiResponseV2'
+          headers:
+            Total-Count:
+              type: string
+              description: Total number of IMSIs filtered
+        "400":
+          description: If the paging parameters are not valid
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+    put:
+      security:
+      - ApiKey: []
+      description: Update an IMSI
+      tags:
+      - IMSI
+      summary: Update IMSI
+      operationId: UpdateImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - description: Body
+        name: Payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ImsiUpdatePayloadV2'
+      responses:
+        "200":
+          description: If the IMSI is successfully updated
+          schema:
+            $ref: '#/definitions/ImsiResponseV2'
+        "400":
+          description: If the IMSI has invalid format, if the IMSI doesn't contain
+            MCC/MNC of if the IMSI name is longer than 255 characters
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found. Also if
+            SIM card is not found when requesting SIM provisioning
+        "409":
+          description: If the IMSI name already exists
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+    post:
+      security:
+      - ApiKey: []
+      description: Create a new IMSI
+      tags:
+      - IMSI
+      summary: Create IMSI
+      operationId: CreateImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - description: Body
+        name: Payload
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/ImsiPayloadV2'
+      responses:
+        "201":
+          description: If the IMSI is successfully created
+          schema:
+            $ref: '#/definitions/ImsiResponseV2'
+          headers:
+            Location:
+              type: string
+              description: Location for created resource
+        "400":
+          description: If the IMSI has invalid format, if the IMSI doesn't contain
+            MCC/MNC of if the IMSI name is longer than 255 characters
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or APN is not found. Also if
+            SIM card is not found when requesting SIM provisioning
+        "409":
+          description: If the IMSI already exists or the name is already in use
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/imsi/nextimsi:
+    get:
+      security:
+      - ApiKey: []
+      description: Get the next available IMSI
+      tags:
+      - IMSI
+      summary: Get next IMSI
+      operationId: NextImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the next available IMSI is successfully returned
+          schema:
+            $ref: '#/definitions/NextImsiResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/imsi/{IMSI}:
+    get:
+      security:
+      - ApiKey: []
+      description: Show an IMSI
+      tags:
+      - IMSI
+      summary: Show IMSI
+      operationId: ShowImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: IMSI
+        name: IMSI
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the IMSI is successfully returned
+          schema:
+            $ref: '#/definitions/ImsiResponseV2'
+        "400":
+          description: If the IMSI does not contain MCC/MNC for the Site
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or IMSI is not found
+        "500":
+          description: Internal Server Error
+    delete:
+      security:
+      - ApiKey: []
+      description: Delete an existing IMSI
+      tags:
+      - IMSI
+      summary: Delete IMSI
+      operationId: DeleteImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: IMSI
+        name: IMSI
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the IMSI is successfully deleted
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or IMSI is not found
+        "500":
+          description: Internal Server Error
+        "503":
+          description: If in maintenance mode or busy
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/imsi/{IMSI}/datausage:
+    get:
+      security:
+      - ApiKey: []
+      description: Show Data Usage of the IMSI
+      tags:
+      - IMSI
+      summary: Show IMSI data usage
+      operationId: DataUsageImsi_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: IMSI
+        name: IMSI
+        in: path
+        required: true
+      - enum:
+        - 1
+        - 4
+        - 8
+        - 24
+        - 72
+        type: integer
+        default: 72
+        description: Timespan in hours
+        name: timespan
+        in: query
+      responses:
+        "200":
+          description: If the IMSI's data usage is successfully returned.
+          schema:
+            $ref: '#/definitions/ImsiDataUsageResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site, NC or IMSI is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/sim:
+    get:
+      security:
+      - ApiKey: []
+      description: Show the SIM card currently inserted in the SIM burner
+      tags:
+      - SIM
+      summary: Show SIM card
+      operationId: ShowSim_v2
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the SIM card was read successfully
+          schema:
+            $ref: '#/definitions/SimResponseV2'
+        "204":
+          description: If there is no SIM card inserted
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/vlan:
+    get:
+      security:
+      - ApiKey: []
+      description: List VLANs
+      tags:
+      - VLAN
+      summary: List VLANs
+      operationId: ListVlan
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the VLAN list is successfully returned
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/VlanResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If the Organization, Site or NC is not found
+        "500":
+          description: Internal Server Error
+  /v2/organization/{OrganizationName}/site/{SiteName}/nc/vlan/{Interface}/{Vid}:
+    get:
+      security:
+      - ApiKey: []
+      description: Show a VLAN
+      tags:
+      - VLAN
+      summary: Show VLAN
+      operationId: ShowVlan
+      parameters:
+      - type: string
+        description: Organization name
+        name: OrganizationName
+        in: path
+        required: true
+      - type: string
+        description: Site name
+        name: SiteName
+        in: path
+        required: true
+      - type: string
+        description: VLAN Network Interface
+        name: Interface
+        in: path
+        required: true
+      - type: integer
+        description: VLAN ID (VID)
+        name: Vid
+        in: path
+        required: true
+      responses:
+        "200":
+          description: If the VLAN is successfully returned
+          schema:
+            $ref: '#/definitions/VlanResponseV2'
+        "403":
+          description: If the current user doesn't have the necessary permission
+        "404":
+          description: If Organization, Site, Site, NC or VLAN is not found
+        "500":
+          description: Internal Server Error
+definitions:
+  ApnPayloadV2:
+    description: Type used to provision an APN
+    type: object
+    required:
+    - name
+    - ambrDl
+    - ambrUl
+    - cidr
+    - vlan
+    properties:
+      ambrDl:
+        description: Aggregated Maximum Bandwidth Rate for Download in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      ambrUl:
+        description: Aggregated Maximum Bandwidth Rate for Upload in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      cidr:
+        description: |-
+          IP Pool Network IP, CIDR notation. Valid range of CIDR is 8 to 30, inclusive.
+          10.10.11.0/24, 10.10.12.0/24, 10.10.13.0/24, 10.10.14.0/24 and 10.10.15.0/24 are reserved
+          Mandatory
+        type: string
+        example: 172.18.0.0/16
+      deviceAccessMode:
+        description: Device access mode. Routed|NAT. Optional. Site default value
+          will be used if not specified
+        type: string
+        example: Routed
+      deviceDns1:
+        description: Primary device DNS IPv4 IP. Not applicable for VLANs in DHCP
+          mode. Optional. Site default value will be used if not specified
+        type: string
+        example: 8.8.8.8
+      deviceDns2:
+        description: Secondary device DNS IPv4 IP. Not applicable for VLANs in DHCP
+          mode. Optional. Site default value will be used if not specified
+        type: string
+        example: 1.1.1.1
+      name:
+        description: APN Name. Mandatory (unique identifier for the APN)
+        type: string
+        example: Factory-APN
+      priority:
+        description: Quality of Service Priority. 1 is lowest, 5 is highest.
+        type: integer
+        format: int64
+        maximum: 5
+        minimum: 1
+        example: 1
+      qci:
+        description: |-
+          Quality of Service Class Identifier. For IC <= 1.8, 9 is normal/default priority, 5 is high priority.
+          For EP5G, valid range is 129 to 133, inclusive. 129 is highest priority, 133 is lowest.
+        type: integer
+        format: int64
+        example: 130
+      vlan:
+        $ref: '#/definitions/VlanIdentifierV2'
+  ApnResponseBaseV2:
+    description: Type used to return an APN
+    type: object
+    required:
+    - name
+    - ambrDl
+    - ambrUl
+    - cidr
+    properties:
+      ambrDl:
+        description: Aggregated Maximum Bandwidth Rate for Download in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      ambrUl:
+        description: Aggregated Maximum Bandwidth Rate for Upload in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      cidr:
+        description: |-
+          IP Pool Network IP, CIDR notation. Valid range of CIDR is 8 to 30, inclusive.
+          10.10.11.0/24, 10.10.12.0/24, 10.10.13.0/24, 10.10.14.0/24 and 10.10.15.0/24 are reserved
+          Mandatory
+        type: string
+        example: 172.18.0.0/16
+      deviceAccessMode:
+        description: Device access mode, Routed|NAT
+        type: string
+        example: Routed
+      deviceDns1:
+        description: Primary device DNS server. IPv4 address or DHCP
+        type: string
+        example: 8.8.8.8
+      deviceDns2:
+        description: Secondary device DNS server. IPv4 address or DHCP
+        type: string
+        example: 1.1.1.1
+      dscp:
+        description: Differentiated Services Code Point (DiffServ QoS)
+        type: integer
+        format: int64
+        example: 0
+      name:
+        description: APN Name. Mandatory (unique identifier for the APN)
+        type: string
+        example: Factory-APN
+      priority:
+        description: Quality of Service Priority. 1 is lowest, 5 is highest.
+        type: integer
+        format: int64
+        maximum: 5
+        minimum: 1
+        example: 1
+      qci:
+        description: |-
+          Quality of Service Class Identifier. For IC <= 1.8, 9 is normal/default priority, 5 is high priority.
+          For EP5G, valid range is 129 to 133, inclusive. 129 is highest priority, 133 is lowest.
+        type: integer
+        format: int64
+        example: 130
+  ApnResponseBaseV2List:
+    type: array
+    items:
+      $ref: '#/definitions/ApnResponseBaseV2'
+  ApnResponseV2:
+    description: Type used to return a full APN response, including the associated
+      VLAN
+    type: object
+    required:
+    - name
+    - ambrDl
+    - ambrUl
+    - cidr
+    properties:
+      ambrDl:
+        description: Aggregated Maximum Bandwidth Rate for Download in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      ambrUl:
+        description: Aggregated Maximum Bandwidth Rate for Upload in Mbits per second.
+          Mandatory
+        type: string
+        example: "1000"
+      cidr:
+        description: |-
+          IP Pool Network IP, CIDR notation. Valid range of CIDR is 8 to 30, inclusive.
+          10.10.11.0/24, 10.10.12.0/24, 10.10.13.0/24, 10.10.14.0/24 and 10.10.15.0/24 are reserved
+          Mandatory
+        type: string
+        example: 172.18.0.0/16
+      deviceAccessMode:
+        description: Device access mode, Routed|NAT
+        type: string
+        example: Routed
+      deviceDns1:
+        description: Primary device DNS server. IPv4 address or DHCP
+        type: string
+        example: 8.8.8.8
+      deviceDns2:
+        description: Secondary device DNS server. IPv4 address or DHCP
+        type: string
+        example: 1.1.1.1
+      dscp:
+        description: Differentiated Services Code Point (DiffServ QoS)
+        type: integer
+        format: int64
+        example: 0
+      imsisConfigured:
+        description: Number of IMSIs configured in the APN
+        type: string
+        example: "50"
+      name:
+        description: APN Name. Mandatory (unique identifier for the APN)
+        type: string
+        example: Factory-APN
+      priority:
+        description: Quality of Service Priority. 1 is lowest, 5 is highest.
+        type: integer
+        format: int64
+        maximum: 5
+        minimum: 1
+        example: 1
+      qci:
+        description: |-
+          Quality of Service Class Identifier. For IC <= 1.8, 9 is normal/default priority, 5 is high priority.
+          For EP5G, valid range is 129 to 133, inclusive. 129 is highest priority, 133 is lowest.
+        type: integer
+        format: int64
+        example: 130
+      vlan:
+        $ref: '#/definitions/VlanIdentifierV2'
+  ApnUpdatePayloadV2:
+    description: Type used to update an APN
+    type: object
+    required:
+    - name
+    properties:
+      ambrDl:
+        description: Aggregated Maximum Bandwidth Rate for Download in bits per second.
+          Optional unless AmbrMaxDl is included
+        type: string
+        example: "1000"
+      ambrUl:
+        description: Aggregated Maximum Bandwidth Rate for Upload in bits per second.
+          Optional unless AmbrMaxUl is included
+        type: string
+        example: "1000"
+      cidr:
+        description: |-
+          IP Pool Network IP, CIDR notation. Valid range of CIDR is 8 to 30, inclusive.
+          10.10.11.0/24, 10.10.12.0/24, 10.10.13.0/24, 10.10.14.0/24 and 10.10.15.0/24 are reserved
+          Optional
+        type: string
+        example: 172.20.0.0/16
+      deviceAccessMode:
+        description: Device access mode. Routed|NAT. Optional
+        type: string
+        example: Routed
+      deviceDns1:
+        description: Primary device DNS IPv4 IP. Not applicable for VLANs in DHCP
+          mode. Optional
+        type: string
+        example: 8.8.8.8
+      deviceDns2:
+        description: Secondary device DNS IPv4 IP. Not applicable for VLANs in DHCP
+          mode. Optional
+        type: string
+        example: 1.1.1.1
+      name:
+        description: APN Name. Mandatory (unique identifier for the APN)
+        type: string
+        example: Factory-APN
+      priority:
+        description: Quality of Service Priority. 1 is lowest, 5 is highest.
+        type: integer
+        format: int64
+        maximum: 5
+        minimum: 1
+        example: 1
+      qci:
+        description: |-
+          Quality of Service Class Identifier. For IC <= 1.8, 9 is normal/default priority, 5 is high priority.
+          For EP5G, valid range is 129 to 133, inclusive. 129 is highest priority, 133 is lowest.
+          Optional
+        type: integer
+        format: int64
+        example: 9
+      vlan:
+        $ref: '#/definitions/VlanIdentifierV2'
+  CIDRResponseV2:
+    description: Type used to return cidr
+    type: object
+    required:
+    - cidr
+    properties:
+      cidr:
+        description: IP Pool Network in CIDR notation
+        type: string
+        example: 172.18.0.0/16
+  DataPointsResponseV2:
+    description: Type used to return data points and time stamp for the dashboard
+    type: object
+    properties:
+      dataPoint:
+        description: data point for a site
+        type: string
+        example: "20.0"
+      timeStamp:
+        description: Time stamp for a site
+        type: string
+        example: "1567499967"
+  ImsiDataUsageResponseV2:
+    description: Type used to return uplink/downlink data points for data usage, in
+      bits per second (bps)
+    type: object
+    properties:
+      downlink:
+        type: array
+        items:
+          $ref: '#/definitions/DataPointsResponseV2'
+      uplink:
+        type: array
+        items:
+          $ref: '#/definitions/DataPointsResponseV2'
+  ImsiPayloadV2:
+    description: Type used to provision an IMSI
+    type: object
+    required:
+    - imsi
+    - name
+    - apn
+    - isBlocked
+    properties:
+      apn:
+        description: APN that the IMSI belongs to
+        type: string
+        example: Factory-APN
+      imei:
+        description: International Mobile Equipment Identity. 15 digits, consisting
+          of 14 digit IMEI + 1 digit checksum
+        type: string
+        example: "863420047892829"
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN).
+          Mandatory (unique identifier for the IMSI)
+        type: string
+        example: "310014123456789"
+      ipAddress:
+        description: The static IP address for the IMSI
+        type: string
+        example: 172.16.0.80
+      isBlocked:
+        description: Whether or not this IMSI is blocked
+        type: boolean
+        example: false
+      isLockedToDevice:
+        description: Whether to lock this IMSI to a IMEI
+        type: boolean
+      isWatchdog:
+        description: Watchdog indicator
+        type: boolean
+        example: false
+      name:
+        description: Name of the IMSI
+        type: string
+        example: Robot1
+      provisionSim:
+        description: Whether or not provision a SIM card (This requires that the SIM
+          card is inserted to the attached USB writer)
+        type: boolean
+        example: true
+      serviceProviderName:
+        description: The Service Provider Name to use when provision a SIM card, should
+          be maximum 16 SMS default 7-bit coded alphabet without whitespaces
+        type: string
+        example: EP5G
+  ImsiResponseV2:
+    description: Type used to return an IMSI
+    type: object
+    required:
+    - imsi
+    - name
+    - apn
+    - isBlocked
+    - isOnline
+    properties:
+      apn:
+        description: APN that the IMSI belongs to
+        type: string
+        example: Factory-APN
+      iccid:
+        description: Associated SIM card serial number
+        type: string
+        example: "893110400000000242"
+      imei:
+        description: International Mobile Equipment Identity. 15 digits, consisting
+          of 14 digit IMEI + 1 digit checksum
+        type: string
+        example: "863420047892829"
+      imeiSv:
+        description: International Mobile Equipment Identity. 16 digits, consisting
+          of 14 digit IMEI + 2 digit SVN (Software Version Number)
+        type: string
+        example: "8634200478928214"
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN).
+          Mandatory (unique identifier for the IMSI)
+        type: string
+        example: "310014123456789"
+      ipAddress:
+        description: The static IP address for the IMSI
+        type: string
+        example: 172.16.0.80
+      isBlocked:
+        description: Whether or not this IMSI is blocked
+        type: boolean
+        example: false
+      isBulkProvisioned:
+        description: If Imsi is created through bulk provisioning
+        type: boolean
+        example: false
+      isLockedToDevice:
+        description: Whether to lock this IMSI to a IMEI
+        type: boolean
+      isOnline:
+        description: Whether or not this IMSI is online
+        type: boolean
+        example: true
+      isWatchdog:
+        description: Watchdog indicator
+        type: boolean
+        example: false
+      name:
+        description: Name of the IMSI
+        type: string
+        example: Robot1
+      status:
+        description: IMSI status (Online, Offline, SIM not written, Disabled)
+        type: string
+        example: Online
+  ImsiUpdatePayloadV2:
+    description: Type used to update an IMSI
+    type: object
+    required:
+    - imsi
+    - name
+    - apn
+    - isBlocked
+    properties:
+      apn:
+        description: APN that the IMSI belongs to
+        type: string
+        example: Factory-APN
+      imei:
+        description: International Mobile Equipment Identity. 15 digits, consisting
+          of 14 digit IMEI + 1 digit checksum
+        type: string
+        example: "863420047892829"
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN).
+          Mandatory (unique identifier for the IMSI)
+        type: string
+        example: "310014123456789"
+      ipAddress:
+        description: The static IP address for the IMSI
+        type: string
+        example: 172.16.0.80
+      isBlocked:
+        description: Whether or not this IMSI is blocked
+        type: boolean
+        example: false
+      isLockedToDevice:
+        description: Whether to lock this IMSI to a IMEI
+        type: boolean
+      isWatchdog:
+        description: Watchdog indicator
+        type: boolean
+        example: false
+      name:
+        description: Name of the IMSI
+        type: string
+        example: Robot1
+      provisionSim:
+        description: Whether or not provision a SIM card (This requires that the SIM
+          card is inserted to the attached USB writer
+        type: boolean
+        example: true
+      serviceProviderName:
+        description: The Service Provider Name to use when provisioning a SIM card,
+          should be maximum 16 SMS default 7-bit coded alphabet without whitespaces
+        type: string
+        example: EP5G
+  LatencyResponseV2:
+    description: Type used to return latency data for a site
+    type: object
+    properties:
+      watchdogs:
+        description: Latency Data Points
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            $ref: '#/definitions/DataPointsResponseV2'
+        example:
+          WatchdogName:
+          - LatencyDataPoint: ""
+            LatencyDataPointTimeStamp: "1578822203"
+          - LatencyDataPoint: "19473.846"
+            LatencyDataPointTimeStamp: "1578822305.416000"
+          - LatencyDataPoint: "19910.192"
+            LatencyDataPointTimeStamp: "1578822323"
+  NextImsiResponseV2:
+    description: Type used to return the next available IMSI
+    type: object
+    required:
+    - imsi
+    properties:
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN).
+          Mandatory (unique identifier for the IMSI)
+        type: string
+        example: "310014123456789"
+  NextIpResponseV2:
+    description: Type used to return next suggested IP address
+    type: object
+    required:
+    - ipAddress
+    properties:
+      ipAddress:
+        description: Next suggested IP address to allocate in the APN
+        type: string
+        example: 172.16.0.16
+  OpUpdatePayload:
+    description: OpUpdatePayload is the type used to update op
+    type: object
+    required:
+    - encryptedOp
+    - transportKeyIndex
+    properties:
+      encryptedOp:
+        description: Op encrypted and then encoded in hex format
+        type: string
+        example: 5e2f514741ba042e63bde0902d4e97b6
+      transportKeyIndex:
+        description: Transport key index to use for decryption of the encrypted op
+        type: integer
+        format: int64
+        example: 1
+  OverlapApnPayloadV2:
+    description: Type used to check if cidr overlaps with existing ones
+    type: object
+    required:
+    - cidr
+    properties:
+      cidr:
+        description: The IP Pool Network in CIDR notation to be checked for overlap
+          with existing or reserved networks. Valid range of CIDR is 8 to 30, inclusive
+        type: string
+        example: 172.20.0.0/16
+  SimResponseV2:
+    description: Type used to return SIM card data
+    type: object
+    required:
+    - iccid
+    - imsi
+    properties:
+      iccid:
+        description: Integrated Circuit Card Identification Number of the physical
+          SIM card
+        type: string
+        example: "893110400000000044"
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN)
+        type: string
+        example: "310014123456789"
+      mcc:
+        description: Mobile Country Code
+        type: string
+        example: "310"
+      mnc:
+        description: Mobile Network Code
+        type: string
+        example: "014"
+      serviceProviderName:
+        description: The Service Provider Name
+        type: string
+        example: EricssonIC
+  ThroughputResponseV2:
+    description: Type used to return throughput data for a site
+    type: object
+    properties:
+      avgDownlink:
+        description: The average downlink throughput in MB
+        type: integer
+        format: int64
+        example: 100
+      avgUplink:
+        description: The average uplink throughput in MB
+        type: integer
+        format: int64
+        example: 100
+  TopConsumptionDevicesResponseV2:
+    description: Type used to return top devices of data consumption
+    type: object
+    properties:
+      topConsumptionDevices:
+        description: TopConsumptionDevices
+        type: object
+        additionalProperties:
+          type: array
+          items:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/UplinkDownloadResponseV2'
+  UplinkDownloadResponseV2:
+    type: object
+    properties:
+      download:
+        description: Download
+        type: number
+        format: double
+        example: 93032041
+      imsi:
+        description: International Mobile Subscriber Identity (consist of MCC+MNC+MSIN)
+        type: string
+        example: "310014123456789"
+      name:
+        description: Name of Device
+        type: string
+        example: Samsung Galaxy S10
+      upload:
+        description: Upload
+        type: number
+        format: double
+        example: 93032041
+  VlanIdentifierV2:
+    type: object
+    required:
+    - interface
+    - vid
+    properties:
+      interface:
+        description: VLAN network interface. Together with the VID it uniquely identifies
+          a VLAN. Mandatory
+        type: string
+        example: Ext-1
+      vid:
+        description: VLAN ID (VID). 0-4094 where 0 means the untagged VLAN. Together
+          with the interface it uniquely identifies a VLAN. Mandatory
+        type: integer
+        format: int64
+        example: 0
+  VlanResponseV2:
+    description: The type used to return a full VLAN response, including associated
+      APNs
+    type: object
+    required:
+    - interface
+    - vid
+    - vip
+    - netmask
+    - gateway
+    - ncIp1
+    - ncIp2
+    - vrid
+    properties:
+      apns:
+        $ref: '#/definitions/ApnResponseBaseV2List'
+      gateway:
+        description: Default Gateway for VIP network. IPv4 address or DHCP. Mandatory
+        type: string
+        example: 10.111.22.1
+      interface:
+        description: VLAN network interface. Together with the VID it uniquely identifies
+          a VLAN. Mandatory
+        type: string
+        example: Ext-1
+      name:
+        description: User defined name/alias for the VLAN. Optional
+        type: string
+        example: FactoryVLAN
+      ncIp1:
+        description: IP address of first network controller. Mandatory for non-legacy
+          systems
+        type: string
+        example: 10.111.22.141
+      ncIp2:
+        description: IP address of second network controller. Mandatory for non-legacy
+          systems
+        type: string
+        example: 10.111.22.142
+      netmask:
+        description: Netmask for VIP network. IPv4 netmask or DHCP. Mandatory
+        type: string
+        example: 255.255.255.0
+      vid:
+        description: VLAN ID (VID). 0-4094 where 0 means the untagged VLAN. Together
+          with the interface it uniquely identifies a VLAN. Mandatory
+        type: integer
+        format: int64
+        example: 0
+      vip:
+        description: Virtual IP Address (VIP) to use externally. IPv4 address or DHCP.
+          Mandatory
+        type: string
+        example: 10.111.22.140
+      vrid:
+        description: Virtual Router Identifier (VRID), used as part of the VRRP MAC
+          address. 1-255. Mandatory for non-legacy systems
+        type: integer
+        format: int64
+        example: 100
+securityDefinitions:
+  ApiKey:
+    type: apiKey
+    name: X-Api-Key
+    in: header
