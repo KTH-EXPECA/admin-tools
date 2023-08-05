@@ -8,7 +8,7 @@ import openpyxl as pyxl
 
 omit_columns = ["*"]         # Omit columns that includes any of these strings in the header
 keep_rows = ["TENANT"]       # If column header is "ROLE", keep only rows that includes any of these strings in the row cells
-included_tabs = ["Worker Nodes"]       # List only tabs that includes any of these strings in the row cells
+included_tabs = ["Ericsson Private 5G","SDRs","Adv Routers","Worker Nodes"]       # List only tabs that includes any of these strings in the row cells
 
 
 
@@ -148,6 +148,8 @@ def excel_to_md(sheet):
     table_list = get_tables(sheet)
 
     for table in table_list:
+        if len(table[0])>0:
+            sheetlines.append("### " + str(table[1][0]))
         filtered_table = filter_rows_cols(table)
         newlines = get_table_md(filtered_table)
         sheetlines.extend(newlines)
