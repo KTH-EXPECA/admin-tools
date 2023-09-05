@@ -24,10 +24,12 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 # Writes time stamp plus text into event log file
 def logevent(logtext):
 
-    with open(eventlogfname, "r") as f:
-        lines = f.read().splitlines()
-
-    newlines = lines[-eventlogsize:]
+    try:
+        with open(eventlogfname, "r") as f:
+            lines = f.read().splitlines()
+        newlines = lines[-eventlogsize:]
+    except:
+        newlines = []
 
     with open(eventlogfname, "w") as f:
         for line in newlines:
