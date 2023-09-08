@@ -96,37 +96,37 @@ def main():
             print("Controller: expeca-exporter restart failed")
 
 
-    for host_item in host_list:
+    # for host_item in host_list:
 
-        HOSTNAME = host_item["hostname"]
-        HOSTIP   = host_item["hostIP"]
+    #     HOSTNAME = host_item["hostname"]
+    #     HOSTIP   = host_item["hostIP"]
 
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        # pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
-        # client.connect(hostname=HOSTIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
+    #     client = paramiko.SSHClient()
+    #     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    #     # pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
+    #     # client.connect(hostname=HOSTIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
 
-        try:
-            client.connect(hostname=HOSTIP, username=USER, password=PSW)
-            connect_ok = True
-        except:
-            connect_ok = False
-            print(HOSTNAME + ": Connect failed")
+    #     try:
+    #         client.connect(hostname=HOSTIP, username=USER, password=PSW)
+    #         connect_ok = True
+    #     except:
+    #         connect_ok = False
+    #         print(HOSTNAME + ": Connect failed")
 
-        if connect_ok:
-            try:
-                command = "ps -ax | grep 'node_exporter'"
-                stdin, stdout, stderr = client.exec_command(command)              # Check process in worker node
-                bytelinelist = stdout.read().splitlines()                         # Collect command output
+    #     if connect_ok:
+    #         try:
+    #             command = "ps -ax | grep 'node_exporter'"
+    #             stdin, stdout, stderr = client.exec_command(command)              # Check process in worker node
+    #             bytelinelist = stdout.read().splitlines()                         # Collect command output
 
-                if len(bytelinelist) < 3:                                         # If node_exporter process is not executing
-                    command = "/home/expeca/exporter/node_exporter-1.5.0.linux-amd64/node_exporter &"
-                    stdin, stdout, stderr = client.exec_command(command)              # Start node_exporter
-                    print(HOSTNAME + ": node_exporter restart done")
-                else:
-                    print(HOSTNAME + ": node_exporter is already active")
-            except:
-                print(HOSTNAME + ": node_exporter restart failed")
+    #             if len(bytelinelist) < 3:                                         # If node_exporter process is not executing
+    #                 command = "/home/expeca/exporter/node_exporter-1.5.0.linux-amd64/node_exporter &"
+    #                 stdin, stdout, stderr = client.exec_command(command)              # Start node_exporter
+    #                 print(HOSTNAME + ": node_exporter restart done")
+    #             else:
+    #                 print(HOSTNAME + ": node_exporter is already active")
+    #         except:
+    #             print(HOSTNAME + ": node_exporter restart failed")
 
 
     return
