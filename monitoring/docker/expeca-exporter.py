@@ -18,7 +18,9 @@ from datetime import datetime
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
 
-os.chdir(sys.path[0])            # Set current directory to script directory
+# os.chdir(sys.path[0])            # Set current directory to script directory
+os.chdir("/data")            # Set current directory to script directory
+
 
 
 # Writes time stamp plus text into event log file
@@ -40,6 +42,8 @@ def logevent(logtext):
 
     return
 
+logevent("start")
+logevent(sys.path[0])
 
 def dict_to_lists(in_dict):
     keylist = []
@@ -53,12 +57,16 @@ def dict_to_lists(in_dict):
 
 def main():
 
+    logevent("s0")
+
     with open('expeca-exporter.yml') as f:
         config = yaml.load(f, Loader=SafeLoader)
         polling_interval_seconds = config["polling_interval_seconds"]
         exporter_port = config["exporter_port"]
 
     start_http_server(exporter_port)
+
+    logevent("s1")
 
     # Prometheus metrics to collect
     metric_dict = {}
@@ -77,6 +85,8 @@ def main():
             metric_dict[metric["metric_name"]] = metric_item
             config_labels[metric["metric_name"]] = metric["labels"]
 
+    logevent("s2")
+
 
     while True:
 
@@ -86,16 +96,21 @@ def main():
         #     for metric in collector["metrics"]:
         #         metric_dict[metric["metric_name"]].clear()
 
+        logevent("s3")
+
         for collector in config["collectors"]:
             try:
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
                 collector_ok = True
-                # print(collector["collector_name"] + " ok")
+
+                logevent(collector["collector_name"] + " ok")
+
             except:
                 collector_ok = False
-                # logevent("expeca_exporter: Collector " + collector["collector_name"] + " failed")
-                # print(collector["collector_name"] + " Not ok")
+                logevent("expeca_exporter: Collector " + collector["collector_name"] + " failed")
+
+                logevent(collector["collector_name"] + " Not ok")
 
             for metric in collector["metrics"]:
                 metric_dict[metric["metric_name"]].clear()
