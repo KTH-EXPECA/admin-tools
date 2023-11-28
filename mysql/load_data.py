@@ -11,7 +11,7 @@ data = [
 # MySQL connection configuration
 config = {
     'user': 'root',
-    'password': 'peletara',
+    'password': 'root',
     'host': 'localhost',  # Change this if your MySQL server is on a different host
     'port': 3306,         # Change the port if required
     'database': dbname,   # Change this to the specific database
