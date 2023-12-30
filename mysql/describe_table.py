@@ -1,41 +1,44 @@
-import mysql.connector
-
-dbname = 'test_db'
-tablename = 'test_table'
-
-# MySQL connection configuration
-config = {
-    'user': 'root',
-    'password': 'root',
-    'host': 'localhost',  # Change this if your MySQL server is on a different host
-    'port': 3306,         # Change the port if required
-    'database': dbname,   # Change this to the specific database
-}
+import mysqlmod as m
+import os
+import sys
 
 
-def describe_table(config, tablename):
-    # Establishing connection to MySQL
-    try:
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-
-        # Execute the query to describe the table
-        tablequery = "DESCRIBE " + tablename
-        cursor.execute(tablequery)
-        for description in cursor:
-            print(description)
-
-    except mysql.connector.Error as error:
-        print("Error while connecting to MySQL", error)
-
-    finally:
-        if 'connection' in locals() or 'connection' in globals():
-            cursor.close()
-            connection.close()
-            print("MySQL connection is closed")
+os.chdir(sys.path[0])            # Set current directory to script directory
 
 
+def main():
 
-describe_table(config, tablename)
+    dbname = 'dummy_db'
+    tablename = 'dummy_table'
+
+    # MySQL connection configuration
+    success, config = m.read_mysql_config('config.json')
+    if not success:
+        print("Config could not be read")
+        return
+
+    success, connection = m.open_conn(config, dbname)
+    if not success:
+        print(" Connection could not be opened")
+        return
+        
+    success, descr_list = m.describe_table(connection, tablename)
+    if success:
+        print("Description of table " + tablename + ":")
+        for descr in descr_list:
+            print(descr)
+    else:
+        print("Description of table " + tablename + " in database " + dbname + " could not be read")    
+
+    m.close_conn(connection)
+
+    return
+
+
+if __name__ == "__main__":
+    main()
+
+
+
 
 

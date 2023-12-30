@@ -7,26 +7,24 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 
 
 def main():
-
-    dbname = 'dummy_db'
-    tablename = 'dummy_table'
-
     # MySQL connection configuration
     success, config = m.read_mysql_config('config.json')
     if not success:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
+    success, connection = m.open_conn(config)
     if not success:
         print(" Connection could not be opened")
         return
     
-    success = m.delete_table(connection, tablename)
+    success, dblist = m.read_db_list(connection)
     if success:
-        print("Table " + tablename + " in database " + dbname + " was deleted")
+        print("Databases:")
+        for db in dblist:
+            print(db)
     else:
-        print("Table " + tablename + " in database " + dbname + " could not be deleted")    
+        print("DB list could not be read")
 
     m.close_conn(connection)
 
@@ -35,8 +33,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-

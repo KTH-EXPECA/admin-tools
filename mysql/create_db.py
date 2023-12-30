@@ -1,37 +1,39 @@
-import mysql.connector
-
-dbname = 'test_db'
-
-# MySQL connection configuration
-config = {
-    'user': 'root',
-    'password': 'root',
-    'host': 'localhost',  # Change this if your MySQL server is on a different host
-    'port': 3306,         # Change the port if required
-}
+import mysqlmod as m
+import os
+import sys
 
 
-def create_db(config, dbname):
-    # Establishing connection to MySQL
-    try:
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-
-        # Execute the query to create the database
-        dbquery = "CREATE DATABASE IF NOT EXISTS " + dbname
-        cursor.execute(dbquery)
-        print("Database created successfully!")
-
-    except mysql.connector.Error as error:
-        print("Error while connecting to MySQL", error)
-
-    finally:
-        if 'connection' in locals() or 'connection' in globals():
-            cursor.close()
-            connection.close()
-            print("MySQL connection is closed")
+os.chdir(sys.path[0])            # Set current directory to script directory
 
 
-create_db(config, dbname)
+def main():
+
+    dbname = 'dummy_db'
+
+    # MySQL connection configuration
+    success, config = m.read_mysql_config('config.json')
+    if not success:
+        print("Config could not be read")
+        return
+
+    success, connection = m.open_conn(config)
+    if not success:
+        print(" Connection could not be opened")
+        return
+    
+    success = m.create_db(connection, dbname)
+    if success:
+        print("Database " + dbname + " was created")
+    else:
+        print("Database " + dbname + " could not be created")
+
+    m.close_conn(connection)
+
+    return
+
+
+if __name__ == "__main__":
+    main()
+
 
 

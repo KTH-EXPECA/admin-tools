@@ -10,7 +10,7 @@ def main():
 
     dbname = 'dummy_db'
     tablename = 'dummy_table'
-
+    
     # MySQL connection configuration
     success, config = m.read_mysql_config('config.json')
     if not success:
@@ -22,11 +22,15 @@ def main():
         print(" Connection could not be opened")
         return
     
-    success = m.delete_table(connection, tablename)
+    readquery = "SELECT * FROM " + tablename
+    
+    success, rows = m.read_data(connection, readquery)
     if success:
-        print("Table " + tablename + " in database " + dbname + " was deleted")
+        print("Fetched data from MySQL table:")
+        for row in rows:
+            print(row)
     else:
-        print("Table " + tablename + " in database " + dbname + " could not be deleted")    
+        print("Data could not be read from table " + tablename + " in database " + dbname)
 
     m.close_conn(connection)
 
@@ -35,8 +39,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
 
 
