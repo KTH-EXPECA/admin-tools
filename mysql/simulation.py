@@ -15,25 +15,25 @@ def main():
     dbname = 'kth_research'
     tablename = 'test_table'
 
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config)
-    if not success:
+    connection, error = m.open_conn(config)
+    if error:
         print(" Connection could not be opened")
         return
     
-    success = m.create_db(connection, dbname)
-    if not success:
+    error = m.create_db(connection, dbname)
+    if error:
         print("Database " + dbname + " could not be created")
         return
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
     
@@ -44,14 +44,14 @@ def main():
                         "PRIMARY KEY(time)" + \
                     ")"
     
-    success = m.create_table(connection, tablequery)
-    if not success:
+    error = m.create_table(connection, tablequery)
+    if error:
         print("Table " + tablename + " could not be created")
         return
     
     degrees = 1
     key_pressed = False
-    print("Simulation is running")
+    print("Simulation is running (press 'b' to interrupt the simulation)")
     while not key_pressed:
 
         local_time = datetime.now()
@@ -68,16 +68,16 @@ def main():
             }
         ]
 
-        success = m.insert_data(connection, tablename, datalist)
-        if not success:
+        error = m.insert_data(connection, tablename, datalist)
+        if error:
             print("Data at time " + str(time) + " could not be inserted")
 
         one_day_ago = datetime.now() - timedelta(days=1)
         one_day_ago_utc = one_day_ago.astimezone(timezone.utc)
         tablequery = "DELETE FROM " + tablename + " WHERE insertion_time < '" + str(one_day_ago_utc) + "'"
         
-        success = m.delete_data(connection, tablequery)
-        if not success:
+        error = m.delete_data(connection, tablequery)
+        if error:
             print("Data from table " + tablename + " in database " + dbname + " could not be deleted")    
 
         if keyboard.is_pressed('b'):
@@ -87,7 +87,7 @@ def main():
 
     print("The simulation was interrupted by pressing 'b'")
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 

@@ -12,27 +12,27 @@ def main():
     tablename = 'dummy_table'
     
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
     
     readquery = "SELECT * FROM " + tablename
     
-    success, rows = m.read_data(connection, readquery)
-    if success:
+    rows, error = m.read_data(connection, readquery)
+    if error:
+        print("Data could not be read from table " + tablename + " in database " + dbname)
+    else:
         print("Fetched data from MySQL table:")
         for row in rows:
             print(row)
-    else:
-        print("Data could not be read from table " + tablename + " in database " + dbname)
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 

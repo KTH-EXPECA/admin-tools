@@ -12,13 +12,13 @@ def main():
     tablename = 'dummy_table'
     
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
     
@@ -29,14 +29,14 @@ def main():
                         "insertion_time DATETIME" + \
                     ")"
     
-    success = m.create_table(connection, tablequery)
+    error = m.create_table(connection, tablequery)
 
-    if success:
-        print("Table " + tablename + " in database " + dbname + " was created")
-    else:
+    if error:
         print("Table " + tablename + " in database " + dbname + " could not be created")
+    else:
+        print("Table " + tablename + " in database " + dbname + " was created")
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 

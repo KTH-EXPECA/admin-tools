@@ -11,24 +11,24 @@ def main():
     dbname = 'dummy_db'
 
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
     
-    success, table_list = m.read_table_list(connection)
-    if success:
+    table_list, error = m.read_table_list(connection)
+    if error:
+        print("Tables from database " + dbname + " could not be read")
+    else:
         for table in table_list:
             print(table)
-    else:
-        print("Tables from database " + dbname + " could not be read")
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
     
     return
 

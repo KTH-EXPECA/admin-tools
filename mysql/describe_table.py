@@ -12,25 +12,25 @@ def main():
     tablename = 'dummy_table'
 
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
         
-    success, descr_list = m.describe_table(connection, tablename)
-    if success:
+    descr_list, error = m.describe_table(connection, tablename)
+    if error:
+        print("Description of table " + tablename + " in database " + dbname + " could not be read")    
+    else:
         print("Description of table " + tablename + ":")
         for descr in descr_list:
             print(descr)
-    else:
-        print("Description of table " + tablename + " in database " + dbname + " could not be read")    
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 

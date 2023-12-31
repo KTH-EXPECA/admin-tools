@@ -5,17 +5,17 @@ import json
 # Reads and returns a dictionary from a JSON file
 def read_mysql_config(fname):
     config = None
-    success = False
+    error = "Undefined error"
 
     try:
         with open(fname, 'r') as f:
             config = json.load(f)
-        success = True
+        error = None
     
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
-    return success, config
+    return config, error
 
 
 def open_conn(config, dbname=None):
@@ -25,139 +25,40 @@ def open_conn(config, dbname=None):
         tempconfig['database'] = dbname
 
     connection = None
-    success = False
+    error = "Undefined error"
+
     # Establishing connection to MySQL
     try:
         connection = mysql.connector.connect(**tempconfig)
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
-    return success, connection
+    return connection, error
 
 
 def close_conn(connection):
 
-    if connection and connection.is_connected():
-        connection.close()
+    error = "Undefined error"
 
-    return
-
-
-def read_table_list(connection):
-
-    cursor = None
-    table_list = []
-    success = False
-    
-    # Establishing connection to MySQL
     try:
-        cursor = connection.cursor()
+        if connection and connection.is_connected():
+            connection.close()
+        error = None
 
-        # Execute the query to list tables
-        tablequery = "SHOW TABLES"
-        cursor.execute(tablequery)
-        for table in cursor:
-            table_list.append(table[0])
-        success = True
-        
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
-    finally:
-        if cursor:
-            cursor.close()
-
-    return success, table_list
-
-
-
-def describe_table(connection, tablename):
-
-    cursor = None
-    descr_list = []
-    success = False
-
-    # Establishing connection to MySQL
-    try:
-        cursor = connection.cursor()
-
-        # Execute the query to describe the table
-        tablequery = "DESCRIBE " + tablename
-        cursor.execute(tablequery)
-        for description in cursor:
-            descr_list.append(description)
-
-        success = True
-
-    except:
-        pass
-
-    finally:
-        if cursor:
-            cursor.close()
-
-    return success, descr_list
-
-
-def delete_table(connection, tablename):
-
-    cursor = None
-    success = False
-
-    # Establishing connection to MySQL
-    try:
-        cursor = connection.cursor()
-
-        # Execute the query to delete the table
-        tablequery = "DROP TABLE IF EXISTS " + tablename
-        cursor.execute(tablequery)
-        success = True
-
-    except:
-        pass
-
-    finally:
-        if cursor:
-            cursor.close()
-
-    return success
-
-
-def read_data(connection, readquery):
-    
-    cursor = None
-    rows = []
-    success = False
-
-    # Establishing connection to MySQL
-    try:
-        cursor = connection.cursor()
-
-        # Executing the query
-        cursor.execute(readquery)
-
-        # Fetching all rows from the table
-        rows = cursor.fetchall()
-
-        success = True
-
-    except :
-        pass
-
-    finally:
-        if cursor:
-            cursor.close()
-
-    return success, rows
+    return error
 
 
 def read_db_list(connection):
 
     cursor = None
     dblist = []
-    success = False
+    error = "Undefined error"
+
     # Establishing connection to MySQL
     try:
         cursor = connection.cursor()
@@ -170,22 +71,22 @@ def read_db_list(connection):
         for db in cursor:
             dblist.append(db[0])
         
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success, dblist
+    return dblist, error
 
 
 def create_db(connection, dbname):
 
     cursor = None
-    success = False
+    error = "Undefined error"
 
     # Establishing connection to MySQL
     try:
@@ -194,22 +95,22 @@ def create_db(connection, dbname):
         # Execute the query to create the database
         dbquery = "CREATE DATABASE IF NOT EXISTS " + dbname
         cursor.execute(dbquery)
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success
+    return error
 
 
 def delete_db(connection, dbname):
 
     cursor = None
-    success = False
+    error = "Undefined error"
 
     # Establishing connection to MySQL
     try:
@@ -218,22 +119,77 @@ def delete_db(connection, dbname):
         # Execute the query to delete the database
         dbquery = "DROP DATABASE IF EXISTS " + dbname
         cursor.execute(dbquery)
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success
+    return error
+
+
+def read_table_list(connection):
+
+    cursor = None
+    table_list = []
+    error = "Undefined error"
+    
+    # Establishing connection to MySQL
+    try:
+        cursor = connection.cursor()
+
+        # Execute the query to list tables
+        tablequery = "SHOW TABLES"
+        cursor.execute(tablequery)
+        for table in cursor:
+            table_list.append(table[0])
+        error = None
+        
+    except Exception as e:
+        error = str(e)
+
+    finally:
+        if cursor:
+            cursor.close()
+
+    return table_list, error
+
+
+def describe_table(connection, tablename):
+
+    cursor = None
+    descr_list = []
+    error = "Undefined error"
+
+    # Establishing connection to MySQL
+    try:
+        cursor = connection.cursor()
+
+        # Execute the query to describe the table
+        tablequery = "DESCRIBE " + tablename
+        cursor.execute(tablequery)
+        for description in cursor:
+            descr_list.append(description)
+
+        error = None
+
+    except Exception as e:
+        error = str(e)
+
+    finally:
+        if cursor:
+            cursor.close()
+
+    return descr_list, error
 
 
 def create_table(connection, tablequery):
 
     cursor = None
-    success = False
+    error = "Undefined error"
 
     # Establishing connection to MySQL
     try:
@@ -241,22 +197,74 @@ def create_table(connection, tablequery):
 
         # Execute the query to create the table
         cursor.execute(tablequery)
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success
+    return error
+
+
+def delete_table(connection, tablename):
+
+    cursor = None
+    error = "Undefined error"
+
+    # Establishing connection to MySQL
+    try:
+        cursor = connection.cursor()
+
+        # Execute the query to delete the table
+        tablequery = "DROP TABLE IF EXISTS " + tablename
+        cursor.execute(tablequery)
+        error = None
+
+    except Exception as e:
+        error = str(e)
+
+    finally:
+        if cursor:
+            cursor.close()
+
+    return error
+
+
+def read_data(connection, readquery):
+    
+    cursor = None
+    rows = []
+    error = "Undefined error"
+
+    # Establishing connection to MySQL
+    try:
+        cursor = connection.cursor()
+
+        # Executing the query
+        cursor.execute(readquery)
+
+        # Fetching all rows from the table
+        rows = cursor.fetchall()
+
+        error = None
+
+    except Exception as e:
+        error = str(e)
+
+    finally:
+        if cursor:
+            cursor.close()
+
+    return rows, error
 
 
 def insert_data(connection, tablename, datalist):
 
     cursor = None
-    success = False
+    error = "Undefined error"
 
     # Establishing connection to MySQL
     try:
@@ -274,22 +282,22 @@ def insert_data(connection, tablename, datalist):
         # Commit the changes
         connection.commit()
 
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success
+    return error
 
 
 def delete_data(connection, tablequery):
 
     cursor = None
-    success = False
+    error = "Undefined error"
 
     # Establishing connection to MySQL
     try:
@@ -298,14 +306,14 @@ def delete_data(connection, tablequery):
         # Execute the query to delete the table
         cursor.execute(tablequery)
         connection.commit()
-        success = True
+        error = None
 
-    except:
-        pass
+    except Exception as e:
+        error = str(e)
 
     finally:
         if cursor:
             cursor.close()
 
-    return success
+    return error
 

@@ -13,13 +13,13 @@ def main():
     tablename = 'dummy_table'
     
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config, dbname)
-    if not success:
+    connection, error = m.open_conn(config, dbname)
+    if error:
         print(" Connection could not be opened")
         return
     
@@ -43,13 +43,13 @@ def main():
         }
     ]
     
-    success = m.insert_data(connection, tablename, datalist)
-    if success:
-        print("Data was inserted into table " + tablename + " in database " + dbname)
-    else:
+    error = m.insert_data(connection, tablename, datalist)
+    if error:
         print("Data could not be inserted into table " + tablename + " in database " + dbname)
+    else:
+        print("Data was inserted into table " + tablename + " in database " + dbname)
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 

@@ -11,23 +11,23 @@ def main():
     dbname = 'dummy_db'
 
     # MySQL connection configuration
-    success, config = m.read_mysql_config('config.json')
-    if not success:
+    config, error = m.read_mysql_config('config.json')
+    if error:
         print("Config could not be read")
         return
 
-    success, connection = m.open_conn(config)
-    if not success:
+    connection, error = m.open_conn(config)
+    if error:
         print(" Connection could not be opened")
         return
         
-    success = m.delete_db(connection, dbname)
-    if success:
-        print("Database " + dbname + " was deleted")
-    else:
+    error = m.delete_db(connection, dbname)
+    if error:
         print("Database " + dbname + " could not be deleted")
+    else:
+        print("Database " + dbname + " was deleted")
 
-    m.close_conn(connection)
+    error = m.close_conn(connection)
 
     return
 
