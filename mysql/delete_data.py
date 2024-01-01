@@ -1,3 +1,5 @@
+import mysql.connector
+import json
 import mysqlmod as m
 from datetime import datetime, timezone, timedelta
 import os
@@ -12,28 +14,18 @@ def main():
     dbname = 'dummy_db'
     tablename = 'dummy_table'
     
-    # MySQL connection configuration
-    config, error = m.read_mysql_config('config.json')
-    if error:
-        print("Config could not be read")
-        return
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-    connection, error = m.open_conn(config, dbname)
-    if error:
-        print(" Connection could not be opened")
-        return
-        
-    one_day_ago = datetime.now() - timedelta(days=1)
-    one_day_ago_utc = one_day_ago.astimezone(timezone.utc)
-    tablequery = "DELETE FROM " + tablename + " WHERE insertion_time < '" + str(one_day_ago_utc) + "'"
+    config['database'] = dbname
 
-    error = m.delete_data(connection, tablequery)
-    if error:
-        print("Data from table " + tablename + " in database " + dbname + " could not be deleted")    
-    else:
+    with mysql.connector.connect(**config) as connection:       
+        one_day_ago = datetime.now() - timedelta(days=1)
+        one_day_ago_utc = one_day_ago.astimezone(timezone.utc)
+        tablequery = "DELETE FROM " + tablename + " WHERE insertion_time < '" + str(one_day_ago_utc) + "'"
+
+        m.delete_data(connection, tablequery)
         print("Data from table " + tablename + " in database " + dbname + " was deleted")
-
-    error = m.close_conn(connection)
 
     return
 

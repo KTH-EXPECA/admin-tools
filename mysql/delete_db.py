@@ -1,3 +1,5 @@
+import mysql.connector
+import json
 import mysqlmod as m
 import os
 import sys
@@ -10,24 +12,12 @@ def main():
 
     dbname = 'dummy_db'
 
-    # MySQL connection configuration
-    config, error = m.read_mysql_config('config.json')
-    if error:
-        print("Config could not be read")
-        return
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-    connection, error = m.open_conn(config)
-    if error:
-        print(" Connection could not be opened")
-        return
-        
-    error = m.delete_db(connection, dbname)
-    if error:
-        print("Database " + dbname + " could not be deleted")
-    else:
+    with mysql.connector.connect(**config) as connection:            
+        m.delete_db(connection, dbname)
         print("Database " + dbname + " was deleted")
-
-    error = m.close_conn(connection)
 
     return
 

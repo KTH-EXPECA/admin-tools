@@ -1,3 +1,4 @@
+import mysql.connector
 import mysqlmod as m
 import time as t
 from datetime import datetime, timezone, timedelta
@@ -5,6 +6,7 @@ import math
 import os
 import sys
 import keyboard
+import json
 
 
 os.chdir(sys.path[0])            # Set current directory to script directory
@@ -15,79 +17,58 @@ def main():
     dbname = 'kth_research'
     tablename = 'test_table'
 
-    config, error = m.read_mysql_config('config.json')
-    if error:
-        print("Config could not be read")
-        return
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-    connection, error = m.open_conn(config)
-    if error:
-        print(" Connection could not be opened")
-        return
-    
-    error = m.create_db(connection, dbname)
-    if error:
-        print("Database " + dbname + " could not be created")
-        return
+    with mysql.connector.connect(**config) as connection:  
+        m.create_db(connection, dbname)
 
-    error = m.close_conn(connection)
+    config['database'] = dbname
 
-    connection, error = m.open_conn(config, dbname)
-    if error:
-        print(" Connection could not be opened")
-        return
-    
-    tablequery =   "CREATE TABLE IF NOT EXISTS " + tablename + "(" + \
-                        "time DATETIME(3)," + \
-                        "value DOUBLE," + \
-                        "insertion_time DATETIME," + \
-                        "PRIMARY KEY(time)" + \
-                    ")"
-    
-    error = m.create_table(connection, tablequery)
-    if error:
-        print("Table " + tablename + " could not be created")
-        return
-    
-    degrees = 1
-    key_pressed = False
-    print("Simulation is running (press 'b' to interrupt the simulation)")
-    while not key_pressed:
-
-        local_time = datetime.now()
-        time = local_time.astimezone(timezone.utc)
-        degrees = degrees + 4
-        radians = math.radians(degrees)
-        value = math.sin(radians) * 100
-
-        datalist = [
-            {
-                "time"          : time,
-                "value"         : value,
-                "insertion_time": time
-            }
-        ]
-
-        error = m.insert_data(connection, tablename, datalist)
-        if error:
-            print("Data at time " + str(time) + " could not be inserted")
-
-        one_day_ago = datetime.now() - timedelta(days=1)
-        one_day_ago_utc = one_day_ago.astimezone(timezone.utc)
-        tablequery = "DELETE FROM " + tablename + " WHERE insertion_time < '" + str(one_day_ago_utc) + "'"
+    with mysql.connector.connect(**config) as connection:  
         
-        error = m.delete_data(connection, tablequery)
-        if error:
-            print("Data from table " + tablename + " in database " + dbname + " could not be deleted")    
+        tablequery =   "CREATE TABLE IF NOT EXISTS " + tablename + "(" + \
+                            "time DATETIME(3)," + \
+                            "value DOUBLE," + \
+                            "insertion_time DATETIME," + \
+                            "PRIMARY KEY(time)" + \
+                        ")"
+        
+        m.create_table(connection, tablequery)
+        
+        degrees = 1
+        key_pressed = False
+        print("Simulation is running (press 'b' to interrupt the simulation)")
+        while not key_pressed:
 
-        if keyboard.is_pressed('b'):
-            key_pressed = True
+            local_time = datetime.now()
+            time = local_time.astimezone(timezone.utc)
+            degrees = degrees + 4
+            radians = math.radians(degrees)
+            value = math.sin(radians) * 100
 
-        t.sleep(1)     # 1 = 1 second between iterations
+            datalist = [
+                {
+                    "time"          : time,
+                    "value"         : value,
+                    "insertion_time": time
+                }
+            ]
 
-    print("The simulation was interrupted by pressing 'b'")
+            m.insert_data(connection, tablename, datalist)
 
-    error = m.close_conn(connection)
+            one_day_ago = datetime.now() - timedelta(days=1)
+            one_day_ago_utc = one_day_ago.astimezone(timezone.utc)
+            tablequery = "DELETE FROM " + tablename + " WHERE insertion_time < '" + str(one_day_ago_utc) + "'"
+            
+            m.delete_data(connection, tablequery)
+
+            if keyboard.is_pressed('b'):
+                key_pressed = True
+
+            t.sleep(1)     # 1 = 1 second between iterations
+
+        print("The simulation was interrupted by pressing 'b'")
 
     return
 

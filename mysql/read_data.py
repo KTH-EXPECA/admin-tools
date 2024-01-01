@@ -1,3 +1,5 @@
+import mysql.connector
+import json
 import mysqlmod as m
 import os
 import sys
@@ -11,28 +13,17 @@ def main():
     dbname = 'dummy_db'
     tablename = 'dummy_table'
     
-    # MySQL connection configuration
-    config, error = m.read_mysql_config('config.json')
-    if error:
-        print("Config could not be read")
-        return
+    with open('config.json', 'r') as f:
+        config = json.load(f)
 
-    connection, error = m.open_conn(config, dbname)
-    if error:
-        print(" Connection could not be opened")
-        return
-    
-    readquery = "SELECT * FROM " + tablename
-    
-    rows, error = m.read_data(connection, readquery)
-    if error:
-        print("Data could not be read from table " + tablename + " in database " + dbname)
-    else:
+    config['database'] = dbname
+
+    with mysql.connector.connect(**config) as connection:       
+        readquery = "SELECT * FROM " + tablename      
+        rows = m.read_data(connection, readquery)
         print("Fetched data from MySQL table:")
         for row in rows:
             print(row)
-
-    error = m.close_conn(connection)
 
     return
 
