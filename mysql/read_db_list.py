@@ -1,3 +1,10 @@
+"""A module to read a list of MySQL databases.
+
+A module to read a list of MySQL databases.
+It serves as a way to handle a MySQL database, and to give guidance for how the "mysql.connector" module
+and the "mysqlmod" module can be used.
+"""
+
 import mysql.connector
 import json
 import mysqlmod as m
