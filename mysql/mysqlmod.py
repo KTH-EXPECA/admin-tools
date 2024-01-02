@@ -1,3 +1,10 @@
+"""Module with functions to handle a MySQL database.
+
+This module provides a number of functions to handle a MySQL database and its data.
+The calling module should import mysql-connector-python driver:
+import mysql.connector
+"""
+
 
 def read_db_list(connection):
     """Takes a MySQL connection as input and returns a list of MySQL database names (strings)."""
