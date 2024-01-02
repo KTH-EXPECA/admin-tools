@@ -1,3 +1,10 @@
+"""A module to run a simulation to insert data into a MySQL table, using a sine function.
+
+A module to run a simulation to insert data into a MySQL table, using a sine function.
+It serves as a way to handle a MySQL database, and to give guidance for how the "mysql.connector" module
+and the "mysqlmod" module can be used.
+"""
+
 import mysql.connector
 import mysqlmod as m
 import time as t
