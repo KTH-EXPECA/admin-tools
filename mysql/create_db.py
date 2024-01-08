@@ -17,7 +17,7 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 
 def main():
 
-    dbname = 'dummy_db'
+    dbname = 'expeca'
 
     with open('config.json', 'r') as f:
         config = json.load(f)
