@@ -21,7 +21,7 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 
 def main():
 
-    dbname = 'kth_research'
+    dbname = 'expeca'
     tablename = 'test_table'
 
     with open('config.json', 'r') as f:
