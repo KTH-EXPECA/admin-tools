@@ -30,6 +30,10 @@ scrape_configs:
     targets:
     - 10.20.111.1:9100
   - labels:
+      hostname: aux-vm
+    targets:
+    - 130.237.11.102:9100
+  - labels:
       hostname: worker-01
     targets:
     - 10.20.111.2:9100
