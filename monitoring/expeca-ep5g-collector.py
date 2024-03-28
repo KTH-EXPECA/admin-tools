@@ -1,4 +1,7 @@
-# This script has various routines for interaction with Ericsson Private 5G platform
+# This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
+# and outputs them to standard output in JSON format.
+# This "collector" script can then be invoked byt the "expeca-exporter" script, which then makes the metrics
+# available for Prometheus metrics "scraping".
 
 
 import requests
@@ -12,7 +15,7 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 accessfname = "api_access.json"           # File with API access info in JSON format
 
 
-# Reads 5G access information data from JSON file.
+# Reads EP5G access information data from JSON file.
 # Input: Access info file name
 # Return: Dictionary with API access information, or exception
 def ep5g_readaccess(accessfname):
@@ -23,7 +26,7 @@ def ep5g_readaccess(accessfname):
         return e    
 
 
-# Reads 5G data via API GET.
+# Reads EP5G data via API GET.
 # Input 1: Access info as a dictionary
 # Input 2: Tail part of URL used in GET request, starting with "forward slash". Example: "/kpi/latency"
 # Return: class 'requests.models.Response' or exception
@@ -36,6 +39,7 @@ def ep5g_get(accessinfo, tailurl):
         return e
     
 
+# Returns the avarage of "dataPoint" values in a list
 def get_average(datalist):
     sum = 0
     numitems = 0
@@ -47,6 +51,8 @@ def get_average(datalist):
     return average
 
 
+# Reads the "latency" metric from EP5G, which is only available if the watchdog application is running.
+# Returned is the average latency over the last 5 minutes.
 def read_ep5g_latency(accessinfo):
     latency_list = []
     response_ok = False
@@ -58,12 +64,12 @@ def read_ep5g_latency(accessinfo):
             responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
             response_ok = True
         else:
-            print("Response status code:")
-            print(apiresponse.status_code)
+            print("#", "Response status code:")
+            print("#", apiresponse.status_code)
     else:
-        print("Exception:")
-        print(type(apiresponse))
-        print(apiresponse)
+        print("#", "Exception:")
+        print("#", type(apiresponse))
+        print("#", apiresponse)
 
     if response_ok and responsedata != {}:
         for user, user_list in responsedata["watchdogs"].items():
@@ -90,6 +96,8 @@ def read_ep5g_latency(accessinfo):
     return latency_list
 
 
+# Reads the "throughput" metric from EP5G, .
+# Returned is the average throughput over the last 5 minutes for the whole EP5G system.
 def read_ep5g_throughput(accessinfo):
     throughput_list = []
     response_ok = False
@@ -101,12 +109,12 @@ def read_ep5g_throughput(accessinfo):
             responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
             response_ok = True
         else:
-            print("Response status code:")
-            print(apiresponse.status_code)
+            print("#", "Response status code:")
+            print("#", apiresponse.status_code)
     else:
-        print("Exception:")
-        print(type(apiresponse))
-        print(apiresponse)
+        print("#", "Exception:")
+        print("#", type(apiresponse))
+        print("#", apiresponse)
 
     if response_ok and responsedata != {}:
         throughput_dict = {
@@ -132,6 +140,8 @@ def read_ep5g_throughput(accessinfo):
     return throughput_list
 
 
+# Reads the "datausage" metric from EP5G.
+# Returned is the average throughput over the last 5 minutes, per IMSI
 def read_ep5g_imsi_datausage(accessinfo):
     imsi_datausage_list = []
     response_ok = False
@@ -143,12 +153,12 @@ def read_ep5g_imsi_datausage(accessinfo):
             responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
             response_ok = True
         else:
-            print("Response status code:")
-            print(apiresponse.status_code)
+            print("#", "Response status code:")
+            print("#", apiresponse.status_code)
     else:
-        print("Exception:")
-        print(type(apiresponse))
-        print(apiresponse)
+        print("#", "Exception:")
+        print("#", type(apiresponse))
+        print("#", apiresponse)
 
     if response_ok and responsedata != {}:
         for imsi_item in responsedata:
@@ -162,12 +172,12 @@ def read_ep5g_imsi_datausage(accessinfo):
                     responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
                     response_ok = True
                 else:
-                    print("Response status code:")
-                    print(apiresponse.status_code)
+                    print("#", "Response status code:")
+                    print("#", apiresponse.status_code)
             else:
-                print("Exception:")
-                print(type(apiresponse))
-                print(apiresponse)      
+                print("#", "Exception:")
+                print("#", type(apiresponse))
+                print("#", apiresponse)      
 
             if response_ok and responsedata != {}:
                 # print(responsedata)
@@ -225,6 +235,7 @@ def main():
     imsi_datausage_list = read_ep5g_imsi_datausage(accessinfo)
     outp_list.extend(imsi_datausage_list)
 
+    # Output the resulting metrics to standard output, in JSON format
     print(json.dumps(outp_list, indent = 4))
 
     return

@@ -3,7 +3,7 @@
 # can "scrape" the metrics into its database.
 # A config file in YAML format defines the collector scripts (separate Python scripts) and their corresponding metrics,
 # so that new collectors and/or metrics can be added easily.
-# Usage: python3 expeca-exporter &
+# Usage: python3 expeca-exporter.py &
 
 import time
 from prometheus_client import start_http_server, Gauge, Counter
@@ -21,26 +21,28 @@ eventlogsize = 3000              # Number of lines allowed in the event log. Old
 os.chdir(sys.path[0])            # Set current directory to script directory
 
 
-# Writes time stamp plus text into event log file
+# Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
+# If an exception occurs, nothing is done (pass).
 def logevent(logtext):
 
     try:
         with open(eventlogfname, "r") as f:
             lines = f.read().splitlines()
         newlines = lines[-eventlogsize:]
-    except:
-        newlines = []
 
-    with open(eventlogfname, "w") as f:
-        for line in newlines:
-            f.write(line + "\n")
-        now = datetime.now()
-        date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-        f.write(date_time + " " + logtext + "\n")
+        with open(eventlogfname, "w") as f:
+            for line in newlines:
+                f.write(line + "\n")
+            now = datetime.now()
+            date_time = now.strftime("%Y/%m/%d %H:%M:%S")
+            f.write(date_time + " " + logtext + "\n")
+    except:
+        pass
 
     return
 
 
+# Converts a dictionary to a key list and value list
 def dict_to_lists(in_dict):
     keylist = []
     valuelist = []
@@ -53,11 +55,13 @@ def dict_to_lists(in_dict):
 
 def main():
 
+    # Read the exporter config YAML file
     with open('expeca-exporter.yml') as f:
         config = yaml.load(f, Loader=SafeLoader)
         polling_interval_seconds = config["polling_interval_seconds"]
         exporter_port = config["exporter_port"]
 
+    # Expose the given port for Prometheus "scraping"
     start_http_server(exporter_port)
 
     # Prometheus metrics to collect
@@ -81,10 +85,6 @@ def main():
     while True:
 
         # logevent("Exporter round start")
-
-        # for collector in config["collectors"]:
-        #     for metric in collector["metrics"]:
-        #         metric_dict[metric["metric_name"]].clear()
 
         for collector in config["collectors"]:
             try:
