@@ -1,10 +1,3 @@
-# This script is an exporter for Prometheus metrics.
-# It takes metrics from "collector" scripts in JSON format, and exposes them on a specific port so that Prometheus
-# can "scrape" the metrics into its database.
-# A config file in YAML format defines the collector scripts (separate Python scripts) and their corresponding metrics,
-# so that new collectors and/or metrics can be added easily.
-# Usage: python3 expeca-exporter.py &
-
 import time
 from prometheus_client import start_http_server, Gauge, Counter
 import json
@@ -15,15 +8,28 @@ import yaml
 from yaml.loader import SafeLoader
 from datetime import datetime
 
+"""
+This script is an exporter for Prometheus metrics.
+It takes metrics from "collector" scripts in JSON format, and exposes them on a specific port so that Prometheus
+can "scrape" the metrics into its database.
+A config file in YAML format defines the collector scripts (separate Python scripts) and their corresponding metrics,
+so that new collectors and/or metrics can be added easily.
+Usage: python3 expeca-exporter.py &
+"""
+
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
 
 os.chdir(sys.path[0])            # Set current directory to script directory
 
 
-# Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
-# If an exception occurs, nothing is done (pass).
 def logevent(logtext):
+    """
+    Writes time stamp plus text into event log file.
+
+    Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
+    If an exception occurs, nothing is done (pass).
+    """
 
     try:
         with open(eventlogfname, "r") as f:
@@ -42,8 +48,8 @@ def logevent(logtext):
     return
 
 
-# Converts a dictionary to a key list and value list
 def dict_to_lists(in_dict):
+    """Converts a dictionary to a key list and value list"""
     keylist = []
     valuelist = []
     for key, value in in_dict.items():

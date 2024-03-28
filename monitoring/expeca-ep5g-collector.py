@@ -1,24 +1,29 @@
-# This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
-# and outputs them to standard output in JSON format.
-# This "collector" script can then be invoked byt the "expeca-exporter" script, which then makes the metrics
-# available for Prometheus metrics "scraping".
-
-
 import requests
 import json
 import sys
 import os
 import datetime
 
+"""
+This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
+and outputs them to standard output in JSON format.
+This "collector" script can then be invoked byt the "expeca-exporter" script, which then makes the metrics
+available for Prometheus metrics "scraping".
+"""
+
 os.chdir(sys.path[0])            # Set current directory to script directory
 
 accessfname = "api_access.json"           # File with API access info in JSON format
 
 
-# Reads EP5G access information data from JSON file.
-# Input: Access info file name
-# Return: Dictionary with API access information, or exception
 def ep5g_readaccess(accessfname):
+    """
+    Reads EP5G access information data from a JSON file.
+
+    Reads EP5G access information data from a JSON file.
+    Input: Access info file name
+    Return: Dictionary with API access information, or exception
+    """
     try:
         with open(accessfname, 'r') as f:
             return json.load(f)
@@ -26,11 +31,15 @@ def ep5g_readaccess(accessfname):
         return e    
 
 
-# Reads EP5G data via API GET.
-# Input 1: Access info as a dictionary
-# Input 2: Tail part of URL used in GET request, starting with "forward slash". Example: "/kpi/latency"
-# Return: class 'requests.models.Response' or exception
 def ep5g_get(accessinfo, tailurl):
+    """
+    Reads EP5G data via API GET.
+
+    Reads EP5G data via API GET.
+    Input 1: Access info as a dictionary
+    Input 2: Tail part of URL used in GET request, starting with "forward slash". Example: "/kpi/latency"
+    Return: class 'requests.models.Response' or exception
+    """
     url = accessinfo["baseurl"] + "/organization/" + accessinfo["orgid"] + "/site/" + accessinfo["siteid"] + tailurl
     headers = {"x-api-key": accessinfo["key"]}
     try:
@@ -39,8 +48,8 @@ def ep5g_get(accessinfo, tailurl):
         return e
     
 
-# Returns the avarage of "dataPoint" values in a list
 def get_average(datalist):
+    """Returns the avarage of "dataPoint" values in a list"""
     sum = 0
     numitems = 0
     for dataitem in datalist:
@@ -51,9 +60,13 @@ def get_average(datalist):
     return average
 
 
-# Reads the "latency" metric from EP5G, which is only available if the watchdog application is running.
-# Returned is the average latency over the last 5 minutes.
 def read_ep5g_latency(accessinfo):
+    """
+    Reads the "latency" metric from EP5G
+
+    Reads the "latency" metric from EP5G, which is only available if the watchdog application is running.
+    Returned is the average latency over the last 5 minutes.
+    """
     latency_list = []
     response_ok = False
     tailurl = "/kpi/latency"
@@ -96,9 +109,13 @@ def read_ep5g_latency(accessinfo):
     return latency_list
 
 
-# Reads the "throughput" metric from EP5G, .
-# Returned is the average throughput over the last 5 minutes for the whole EP5G system.
 def read_ep5g_throughput(accessinfo):
+    """
+    Reads the "throughput" metric from EP5G.
+
+    Reads the "throughput" metric from EP5G.
+    Returned is the average throughput over the last 5 minutes for the whole EP5G system.
+    """
     throughput_list = []
     response_ok = False
     tailurl = "/kpi/throughput"
@@ -140,9 +157,13 @@ def read_ep5g_throughput(accessinfo):
     return throughput_list
 
 
-# Reads the "datausage" metric from EP5G.
-# Returned is the average throughput over the last 5 minutes, per IMSI
 def read_ep5g_imsi_datausage(accessinfo):
+    """
+    Reads the "datausage" metric from EP5G.
+    
+    Reads the "datausage" metric from EP5G.
+    Returned is the average throughput over the last 5 minutes, per IMSI
+    """
     imsi_datausage_list = []
     response_ok = False
     tailurl = "/nc/imsi"
