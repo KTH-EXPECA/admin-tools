@@ -5,6 +5,9 @@ import os
 from datetime import datetime, timedelta, timezone
 import zlib
 import xml.etree.ElementTree as ET
+import tarfile
+import io
+import gzip
 
 """
 This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
@@ -20,6 +23,27 @@ namespace = {'ns': 'http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measC
 
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
+
+
+def extract_xml_from_tarball(tarball_binary):
+    xml_list = []
+
+    # Create a file-like object from the binary input
+    tarball_file = io.BytesIO(tarball_binary)
+
+    # Open the tarball
+    with tarfile.open(fileobj=tarball_file) as tar:
+        for member in tar.getmembers():
+            if member.isfile() and member.name.endswith('.xml.gz'):
+                # Extract the gzip file content
+                gz_file = tar.extractfile(member)
+                if gz_file:
+                    with gzip.open(gz_file) as f:
+                        xml_content = f.read()
+                        # Add the XML content to the list
+                        xml_list.append(xml_content.decode('utf-8'))
+
+    return xml_list
 
 
 # Writes time stamp plus text into event log file
@@ -145,27 +169,30 @@ def read_ep5g_pm(accessinfo):
     if type(apiresponse) is requests.models.Response:
         if apiresponse.ok:
             # print(apiresponse.content)
-            xmlstr = process_response(apiresponse.content)
-            # print(xmlstr)
             # exit()
-            root = ET.fromstring(xmlstr)
-
-            # Extract data from measData
+            xmlstrs = extract_xml_from_tarball(apiresponse.content)
             meas_list = []
-            for meas_info in root.findall('.//ns:measInfo', namespace):
-                meas_info_id = meas_info.attrib['measInfoId']
-                job_id = meas_info.find('ns:job', namespace).attrib['jobId']
-                period = meas_info.find('ns:granPeriod', namespace).attrib['duration']
-                end_time = meas_info.find('ns:granPeriod', namespace).attrib['endTime']
-                measurements = extract_measurements(meas_info)
-                for measurement in measurements:
-                    measurement.update({
-                        'measInfoId': meas_info_id,
-                        # 'jobId': job_id,
-                        # 'granPeriod': period,
-                        # 'endTime': end_time
-                    })
-                    meas_list.append(measurement)
+            # print(xmlstrs)
+            # exit()
+
+            for xmlstr in xmlstrs:
+                root = ET.fromstring(xmlstr)
+
+                # Extract data from measData
+                for meas_info in root.findall('.//ns:measInfo', namespace):
+                    meas_info_id = meas_info.attrib['measInfoId']
+                    job_id = meas_info.find('ns:job', namespace).attrib['jobId']
+                    period = meas_info.find('ns:granPeriod', namespace).attrib['duration']
+                    end_time = meas_info.find('ns:granPeriod', namespace).attrib['endTime']
+                    measurements = extract_measurements(meas_info)
+                    for measurement in measurements:
+                        measurement.update({
+                            'measInfoId': meas_info_id,
+                            # 'jobId': job_id,
+                            # 'granPeriod': period,
+                            # 'endTime': end_time
+                        })
+                        meas_list.append(measurement)
 
             response_ok = True
         else:
