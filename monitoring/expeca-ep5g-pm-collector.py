@@ -78,32 +78,6 @@ def extract_measurements(meas_info):
     return values
 
 
-def process_response(response_bytes):
-    retstr = ""
-    # Decode the initial part of the response if it contains metadata or headers
-    decoded_part = response_bytes.split(b'\x1f\x8b\x08\x00')[0]
-    # print("Decoded part:")
-    # print(decoded_part.decode('latin1'))
-
-    # Extract the gzip compressed content from the response
-    gzip_start = response_bytes.find(b'\x1f\x8b\x08\x00')
-    if gzip_start != -1:
-        gzip_data = response_bytes[gzip_start:]
-        try:
-            # Decompress gzip data
-            decompressed_data = zlib.decompress(gzip_data, zlib.MAX_WBITS | 16)
-            # print("Decompressed data:")
-            # print(decompressed_data.decode('latin1'))
-            retstr = decompressed_data.decode('latin1')
-
-        except zlib.error as e:
-            print(f"Decompression error: {e}")
-    else:
-        print("No gzip data found")
-
-    return retstr
-
-
 def ep5g_readaccess(accessfname):
     """
     Reads EP5G access information data from a JSON file.
@@ -146,7 +120,7 @@ def read_ep5g_pm(accessinfo):
     # tailurl = "/pm?start=2024-06-04T09:00:00Z&end=2024-06-04T09:15:00Z"
     tailurl = "/pm"
 
-    now = datetime.now(timezone.utc) - timedelta(minutes=1)
+    now = datetime.now(timezone.utc) - timedelta(minutes=10)
     minute = (now.minute // 15) * 15
     current_quarter_hour = now.replace(minute=minute, second=0, microsecond=0)
     previous_quarter_hour = current_quarter_hour - timedelta(minutes=15)
@@ -154,26 +128,20 @@ def read_ep5g_pm(accessinfo):
     # Format the previous quarter hour as an RFC3339 timestamp
     start = previous_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
     end = current_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
-    # print(type(start), start)
-    # print(type(end), end)
-    # exit()
+
     query_params = {
-        # "start": "2024-06-04T09:00:00Z",
-        # "end"  : "2024-06-04T09:15:00Z",
         "start": start,
         "end"  : end, 
     }
+
+    # logevent("expeca-ep5g-pm-collector: now: " + str(datetime.now(timezone.utc)) + "   start: " + str(start) + "   end: " + str(end))
     
     apiresponse = ep5g_get(accessinfo, tailurl, query_params)
     
     if type(apiresponse) is requests.models.Response:
         if apiresponse.ok:
-            # print(apiresponse.content)
-            # exit()
             xmlstrs = extract_xml_from_tarball(apiresponse.content)
             meas_list = []
-            # print(xmlstrs)
-            # exit()
 
             for xmlstr in xmlstrs:
                 root = ET.fromstring(xmlstr)
@@ -226,9 +194,6 @@ def read_ep5g_pm(accessinfo):
                             }
 
                             pm_list.append(pm_dict)
-
-    # pm_list.append(start)
-    # pm_list.append(end)
 
     return pm_list
 

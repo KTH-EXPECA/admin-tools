@@ -1,5 +1,5 @@
 
-polling_interval_seconds: 300
+polling_interval_minutes: 5
 exporter_port: 9000
 
 

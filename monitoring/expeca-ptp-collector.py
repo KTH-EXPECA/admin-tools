@@ -241,7 +241,7 @@ def main():
 
     print(json.dumps(outp_list, indent = 4))
     if len(outp_list) == 0:
-        logevent("Empty PTP list")
+        logevent("expeca-ptp-collector: Empty PTP list")
 
     return
 
