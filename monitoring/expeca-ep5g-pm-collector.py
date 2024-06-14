@@ -117,7 +117,6 @@ def read_ep5g_pm(accessinfo):
     """
     pm_list = []
     response_ok = False
-    # tailurl = "/pm?start=2024-06-04T09:00:00Z&end=2024-06-04T09:15:00Z"
     tailurl = "/pm"
 
     now = datetime.now(timezone.utc) - timedelta(minutes=10)
@@ -133,8 +132,6 @@ def read_ep5g_pm(accessinfo):
         "start": start,
         "end"  : end, 
     }
-
-    # logevent("expeca-ep5g-pm-collector: now: " + str(datetime.now(timezone.utc)) + "   start: " + str(start) + "   end: " + str(end))
     
     apiresponse = ep5g_get(accessinfo, tailurl, query_params)
     
@@ -189,7 +186,6 @@ def read_ep5g_pm(accessinfo):
                                     "measName"  : key,
                                     "index"     : index,
                                 },
-                                # "value": value.split(',')[0].strip()   # Use only first value if values are comma separated list
                                 "value": value.strip()   # Use only first value if values are comma separated list
                             }
 

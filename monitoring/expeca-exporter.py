@@ -99,14 +99,12 @@ def main():
 
     while True:
 
-        # logevent("Exporter round start")
-
         pm_counter += 1
         if pm_counter > 2:
             pm_counter = 0
 
         for collector in config["collectors"]:
-            if collector["collector_name"] == "expeca-ep5g-pm-collector":
+            if collector["collector_name"] == "expeca-ep5g-pm-collector":   # Run this only every 15 minutes
                 if pm_counter != 1:
                     continue
 
@@ -114,11 +112,8 @@ def main():
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
                 collector_ok = True
-                # print(collector["collector_name"] + " ok")
             except:
                 collector_ok = False
-                # logevent("expeca_exporter: Collector " + collector["collector_name"] + " failed")
-                # print(collector["collector_name"] + " Not ok")
 
             for metric in collector["metrics"]:
                 metric_dict[metric["metric_name"]].clear()
@@ -139,9 +134,7 @@ def main():
                             # logevent("Collector labels:", label_list)
                         
 
-
         seconds_remaining = seconds_to_next_mark(polling_interval_minutes)
-        # print(f"Seconds left to the next 5-minute mark: {seconds_remaining}")
 
         # time.sleep(polling_interval_seconds)
         time.sleep(seconds_remaining)
