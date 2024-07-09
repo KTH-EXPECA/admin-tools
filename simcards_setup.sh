@@ -1,3 +1,5 @@
+# Check here: https://github.com/KTH-EXPECA/openairinterface5g-docs/blob/main/docs/quectel/start.md
+
 # Programmed SIM card with IMSI 999700000113929 as follows:
 ./pySim-prog.py -p 0 -t sysmoISIM-SJA5 -a 85017255 -s 8988211000001139297 -i 001010000000001 -x 001 -y 01 -n OpenAirInterface -k fec86ba6eb707ed08905757b1bb44b8f -o C42449363BBAD02B66D16BC975D77CC1 --acc 0001
 # Programmed SIM card with IMSI 999700000113927 as follows:
