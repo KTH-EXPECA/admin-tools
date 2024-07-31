@@ -36,7 +36,7 @@ def logevent(logtext):
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " expeca-exporter-influxdb: " + logtext + "\n")
+            f.write(date_time + " expeca-scan-collector: " + logtext + "\n")
     except:
         pass
 
