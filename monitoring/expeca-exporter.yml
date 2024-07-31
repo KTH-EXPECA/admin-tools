@@ -18,6 +18,7 @@ collectors:
     - resStrSSH
     - resStrSUDO
     
+
 - collector_name: expeca-scan-collector
   metrics:
   - metric_name: expeca_dev_status
@@ -27,6 +28,7 @@ collectors:
     - host
     - ipaddress
     - port
+
 
 - collector_name: expeca-ptp-collector
   metrics:
@@ -67,6 +69,17 @@ collectors:
     - host
 
 
+- collector_name: expeca-equipm-collector
+  metrics:
+  - metric_name: expeca_sdr_status
+    metric_descr: ExPECA SDR Link Status
+    metric_type: gauge
+    labels:
+    - sdr
+    - mode
+    - ip
+
+
 - collector_name: expeca-ep5g-collector
   metrics:
   - metric_name: expeca_ep5g_latency
@@ -74,11 +87,13 @@ collectors:
     metric_type: gauge
     labels:
     - user
+
   - metric_name: expeca_ep5g_throughput
     metric_descr: ExPECA Ericsson Private 5G Throughput
     metric_type: gauge
     labels:
     - direction
+
   - metric_name: expeca_ep5g_imsi_datausage
     metric_descr: ExPECA Ericsson Private 5G Data Usage by IMSI
     metric_type: gauge
@@ -87,14 +102,14 @@ collectors:
     - direction
 
 
-- collector_name: expeca-ep5g-pm-collector
-  metrics:
-  - metric_name: expeca_ep5g_pm
-    metric_descr: ExPECA Ericsson Private 5G PM Data
-    metric_type: gauge
-    labels:
-    - measInfoId
-    - measObjLdn
-    - measName
-    - index
+# - collector_name: expeca-ep5g-pm-collector
+#   metrics:
+#   - metric_name: expeca_ep5g_pm
+#     metric_descr: ExPECA Ericsson Private 5G PM Data
+#     metric_type: gauge
+#     labels:
+#     - measInfoId
+#     - measObjLdn
+#     - measName
+#     - index
 

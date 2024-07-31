@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-
-# This script collects PTP metrics from all worker nodes. It does so by connecting from controller with SSH and then collects
-# data from the syslog, one worker node at a time. The metrics are output in JSON format that can be read by the expeca-exporter.py script
-# whic makes the metrics available for Prometheus.
-# Usage:
-# python3 ./expeca-ptp-collector.py &
-
 import sys
 import os
 import json
@@ -13,9 +5,16 @@ import paramiko
 from datetime import datetime
 from statistics import stdev
 
+"""
+This script collects PTP metrics from all worker nodes. It does so by connecting from controller with SSH and then collects
+data from the syslog, one worker node at a time. The metrics are output in JSON format that can be read by the expeca-exporter.py script
+whic makes the metrics available for Prometheus.
+Usage:
+python3 ./expeca-ptp-collector.py &
+"""
+
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
-
 
 os.chdir(sys.path[0])      # Set current directory to script directory
 
@@ -64,32 +63,35 @@ host_list = [
 ]
 
 
-# HOSTNAME = "worker-06"
-# HOSTIP   = "10.20.111.4"
 USER     = 'expeca'
 PSW      = 'expeca'
-# SSHKEY   = '/home/expeca/.ssh/id_rsa'
 
 
-# Writes time stamp plus text into event log file
 def logevent(logtext):
+    """
+    Writes time stamp plus text into event log file.
 
+    Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
+    If an exception occurs, nothing is done (pass).
+    """
     try:
-        with open(eventlogfname, "r") as f:
-            lines = f.read().splitlines()
-        newlines = lines[-eventlogsize:]
-    except:
-        newlines = []
+        if os.path.exists(eventlogfname):
+            with open(eventlogfname, "r") as f:
+                lines = f.read().splitlines()
+            newlines = lines[-eventlogsize:]
+        else:
+            newlines = []
 
-    with open(eventlogfname, "w") as f:
-        for line in newlines:
-            f.write(line + "\n")
-        now = datetime.now()
-        date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-        f.write(date_time + " " + logtext + "\n")
+        with open(eventlogfname, "w") as f:
+            for line in newlines:
+                f.write(line + "\n")
+            now = datetime.now()
+            date_time = now.strftime("%Y/%m/%d %H:%M:%S")
+            f.write(date_time + " expeca-ptp-collector: " + logtext + "\n")
+    except:
+        pass
 
     return
-
 
 
 def main():
@@ -100,22 +102,20 @@ def main():
 
     for host_item in host_list:
 
-        HOSTNAME = host_item["hostname"]
-        HOSTIP   = host_item["hostIP"]
-
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        # pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
-        # client.connect(hostname=HOSTIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
-
         try:
-            client.connect(hostname=HOSTIP, username=USER, password=PSW)
-            connect_ok = True
-        except:
-            logevent("expeca-ptp-collector: Connect to host " + host_item["hostname"] + " failed")
-            connect_ok = False
+            HOSTNAME = host_item["hostname"]
+            HOSTIP   = host_item["hostIP"]
 
-        if connect_ok:
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            # pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
+            # client.connect(hostname=HOSTIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
+
+            try:
+                client.connect(hostname=HOSTIP, username=USER, password=PSW)
+            except:
+                logevent("Connect to host " + host_item["hostname"] + " failed")
+                break
 
             command = "cat /var/log/syslog | grep ptp4l | grep 'master offset' | tail -n 720"
             stdin, stdout, stderr = client.exec_command(command)              # Execute command in worker node
@@ -237,11 +237,14 @@ def main():
 
                 outp_list.append(outp)
 
+        except Exception as e:
+            logevent(str(e))
+
 
 
     print(json.dumps(outp_list, indent = 4))
     if len(outp_list) == 0:
-        logevent("expeca-ptp-collector: Empty PTP list")
+        logevent("Empty PTP list")
 
     return
 

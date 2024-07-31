@@ -7,13 +7,42 @@ import datetime
 """
 This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
 and outputs them to standard output in JSON format.
-This "collector" script can then be invoked byt the "expeca-exporter" script, which then makes the metrics
+This "collector" script can then be invoked by the "expeca-exporter" script, which then makes the metrics
 available for Prometheus metrics "scraping".
 """
 
+eventlogfname = "event.log"         # Output file that will have event message if the script used the "logevent" function
+eventlogsize = 3000                 # Number of lines allowed in the event log. Oldest lines are cut.
+accessfname = "api_access.json"     # File with API access info in JSON format
+
 os.chdir(sys.path[0])            # Set current directory to script directory
 
-accessfname = "api_access.json"           # File with API access info in JSON format
+
+def logevent(logtext):
+    """
+    Writes time stamp plus text into event log file.
+
+    Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
+    If an exception occurs, nothing is done (pass).
+    """
+    try:
+        if os.path.exists(eventlogfname):
+            with open(eventlogfname, "r") as f:
+                lines = f.read().splitlines()
+            newlines = lines[-eventlogsize:]
+        else:
+            newlines = []
+
+        with open(eventlogfname, "w") as f:
+            for line in newlines:
+                f.write(line + "\n")
+            now = datetime.now()
+            date_time = now.strftime("%Y/%m/%d %H:%M:%S")
+            f.write(date_time + " expeca-ep5g-collector: " + logtext + "\n")
+    except:
+        pass
+
+    return
 
 
 def ep5g_readaccess(accessfname):
@@ -43,7 +72,9 @@ def ep5g_get(accessinfo, tailurl):
     url = accessinfo["baseurl"] + "/organization/" + accessinfo["orgid"] + "/site/" + accessinfo["siteid"] + tailurl
     headers = {"x-api-key": accessinfo["key"]}
     try:
-        return requests.get(url, headers=headers)
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return response
     except Exception as e:
         return e
     
@@ -68,43 +99,40 @@ def read_ep5g_latency(accessinfo):
     Returned is the average latency over the last 5 minutes.
     """
     latency_list = []
-    response_ok = False
-    tailurl = "/kpi/latency"
-    apiresponse = ep5g_get(accessinfo, tailurl)
-    
-    if type(apiresponse) is requests.models.Response:
-        if apiresponse.ok:
-            responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
-            response_ok = True
-        else:
-            print("#", "Response status code:")
-            print("#", apiresponse.status_code)
-    else:
-        print("#", "Exception:")
-        print("#", type(apiresponse))
-        print("#", apiresponse)
 
-    if response_ok and responsedata != {}:
-        for user, user_list in responsedata["watchdogs"].items():
-            last_item = user_list[-1]
-            # print(user_list[-5:])
-            # print(str(get_average(user_list[-5:])))
+    try:
+        tailurl = "/kpi/latency"
+        apiresponse = ep5g_get(accessinfo, tailurl)
+        if isinstance(apiresponse, Exception):
+            logevent(str(apiresponse))
+            return latency_list
+        
+        responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
 
-            dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
-            dtnow = datetime.datetime.now()
-            delta = dtnow - dt
+        if responsedata != {}:
+            for user, user_list in responsedata["watchdogs"].items():
+                last_item = user_list[-1]
+                # print(user_list[-5:])
+                # print(str(get_average(user_list[-5:])))
 
-            if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
-                latency_dict = {
-                    "metric_name": "expeca_ep5g_latency",
-                    "labels": {
-                        "user": user
-                    },
-                    # "value": last_item["dataPoint"]
-                    "value": get_average(user_list[-5:])
-                }
+                dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
+                dtnow = datetime.datetime.now()
+                delta = dtnow - dt
 
-                latency_list.append(latency_dict)
+                if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
+                    latency_dict = {
+                        "metric_name": "expeca_ep5g_latency",
+                        "labels": {
+                            "user": user
+                        },
+                        # "value": last_item["dataPoint"]
+                        "value": get_average(user_list[-5:])
+                    }
+
+                    latency_list.append(latency_dict)
+
+    except Exception as e:
+        logevent(str(e))
 
     return latency_list
 
@@ -117,42 +145,39 @@ def read_ep5g_throughput(accessinfo):
     Returned is the average throughput over the last 5 minutes for the whole EP5G system.
     """
     throughput_list = []
-    response_ok = False
-    tailurl = "/kpi/throughput"
-    apiresponse = ep5g_get(accessinfo, tailurl)
-    
-    if type(apiresponse) is requests.models.Response:
-        if apiresponse.ok:
-            responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
-            response_ok = True
-        else:
-            print("#", "Response status code:")
-            print("#", apiresponse.status_code)
-    else:
-        print("#", "Exception:")
-        print("#", type(apiresponse))
-        print("#", apiresponse)
 
-    if response_ok and responsedata != {}:
-        throughput_dict = {
-            "metric_name": "expeca_ep5g_throughput",
-            "labels": {
-                "direction": "downlink"
-            },
-            "value": responsedata["avgDownlink"]
-        }
+    try:
+        tailurl = "/kpi/throughput"
+        apiresponse = ep5g_get(accessinfo, tailurl)
+        if isinstance(apiresponse, Exception):
+            logevent(str(apiresponse))
+            return throughput_list
+                
+        responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
 
-        throughput_list.append(throughput_dict)
+        if responsedata != {}:
+            throughput_dict = {
+                "metric_name": "expeca_ep5g_throughput",
+                "labels": {
+                    "direction": "downlink"
+                },
+                "value": responsedata["avgDownlink"]
+            }
 
-        throughput_dict = {
-            "metric_name": "expeca_ep5g_throughput",
-            "labels": {
-                "direction": "uplink"
-            },
-            "value": responsedata["avgUplink"]
-        }
+            throughput_list.append(throughput_dict)
 
-        throughput_list.append(throughput_dict)
+            throughput_dict = {
+                "metric_name": "expeca_ep5g_throughput",
+                "labels": {
+                    "direction": "uplink"
+                },
+                "value": responsedata["avgUplink"]
+            }
+
+            throughput_list.append(throughput_dict)
+
+    except Exception as e:
+        logevent(str(e))
 
     return throughput_list
 
@@ -165,79 +190,66 @@ def read_ep5g_imsi_datausage(accessinfo):
     Returned is the average throughput over the last 5 minutes, per IMSI
     """
     imsi_datausage_list = []
-    response_ok = False
-    tailurl = "/nc/imsi"
-    apiresponse = ep5g_get(accessinfo, tailurl)
-    
-    if type(apiresponse) is requests.models.Response:
-        if apiresponse.ok:
-            responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
-            response_ok = True
-        else:
-            print("#", "Response status code:")
-            print("#", apiresponse.status_code)
-    else:
-        print("#", "Exception:")
-        print("#", type(apiresponse))
-        print("#", apiresponse)
 
-    if response_ok and responsedata != {}:
-        for imsi_item in responsedata:
-            imsi = imsi_item["imsi"]
-            response_ok = False
-            tailurl = "/nc/imsi/" + imsi + "/datausage?timespan=1"
-            apiresponse = ep5g_get(accessinfo, tailurl)
-    
-            if type(apiresponse) is requests.models.Response:
-                if apiresponse.ok:
-                    responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
-                    response_ok = True
-                else:
-                    print("#", "Response status code:")
-                    print("#", apiresponse.status_code)
-            else:
-                print("#", "Exception:")
-                print("#", type(apiresponse))
-                print("#", apiresponse)      
+    try:
+        tailurl = "/nc/imsi"
+        apiresponse = ep5g_get(accessinfo, tailurl)
+        if isinstance(apiresponse, Exception):
+            logevent(str(apiresponse))
+            return imsi_datausage_list
+                
+        responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
 
-            if response_ok and responsedata != {}:
-                # print(responsedata)
-                # exit()
-                if responsedata:
-                    data_list = responsedata["downlink"]
-                    last_item = data_list[-1]
+        if responsedata != {}:
+            for imsi_item in responsedata:
+                imsi = imsi_item["imsi"]
+                tailurl = "/nc/imsi/" + imsi + "/datausage?timespan=1"
+                apiresponse = ep5g_get(accessinfo, tailurl)
+                if isinstance(apiresponse, Exception):
+                    logevent(str(apiresponse))
+                    return imsi_datausage_list        
+                
+                responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
 
-                    dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
-                    dtnow = datetime.datetime.now()
-                    delta = dtnow - dt
+                if responsedata != {}:
+                    if responsedata:
+                        data_list = responsedata["downlink"]
+                        last_item = data_list[-1]
 
-                    if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
-                        imsi_datausage_dict = {
-                            "metric_name": "expeca_ep5g_imsi_datausage",
-                            "labels": {
-                                "imsi": imsi,
-                                "direction": "downlink"
-                            },
-                            # "value": last_item["dataPoint"]
-                            "value": get_average(data_list[-5:])
-                        }
+                        dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
+                        dtnow = datetime.datetime.now()
+                        delta = dtnow - dt
 
-                        imsi_datausage_list.append(imsi_datausage_dict)
+                        if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
+                            imsi_datausage_dict = {
+                                "metric_name": "expeca_ep5g_imsi_datausage",
+                                "labels": {
+                                    "imsi": imsi,
+                                    "direction": "downlink"
+                                },
+                                # "value": last_item["dataPoint"]
+                                "value": get_average(data_list[-5:])
+                            }
 
-                    data_list = responsedata["uplink"]
-                    last_item = data_list[-1]
-                    if last_item["dataPoint"] != "":
-                        imsi_datausage_dict = {
-                            "metric_name": "expeca_ep5g_imsi_datausage",
-                            "labels": {
-                                "imsi": imsi,
-                                "direction": "uplink"
-                            },
-                            # "value": last_item["dataPoint"]
-                            "value": get_average(data_list[-5:])
-                        }
+                            imsi_datausage_list.append(imsi_datausage_dict)
 
-                        imsi_datausage_list.append(imsi_datausage_dict)
+                        data_list = responsedata["uplink"]
+                        last_item = data_list[-1]
+                        if last_item["dataPoint"] != "":
+                            imsi_datausage_dict = {
+                                "metric_name": "expeca_ep5g_imsi_datausage",
+                                "labels": {
+                                    "imsi": imsi,
+                                    "direction": "uplink"
+                                },
+                                # "value": last_item["dataPoint"]
+                                "value": get_average(data_list[-5:])
+                            }
+
+                            imsi_datausage_list.append(imsi_datausage_dict)
+
+    except Exception as e:
+        logevent(str(e))    
 
     return imsi_datausage_list
 
@@ -246,7 +258,10 @@ def main():
     
     outp_list = []
     accessinfo = ep5g_readaccess(accessfname)
-
+    if isinstance(accessinfo, Exception):
+        logevent(str(accessinfo))
+        return
+    
     latency_list = read_ep5g_latency(accessinfo)
     outp_list.extend(latency_list)
 

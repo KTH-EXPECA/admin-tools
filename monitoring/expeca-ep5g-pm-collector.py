@@ -3,7 +3,6 @@ import json
 import sys
 import os
 from datetime import datetime, timedelta, timezone
-import zlib
 import xml.etree.ElementTree as ET
 import tarfile
 import io
@@ -13,10 +12,8 @@ import gzip
 This script is a "collector" script that reads metrics from the Ericsson Private 5G platform
 and outputs them to standard output in JSON format.
 This "collector" script can then be invoked byt the "expeca-exporter" script, which then makes the metrics
-available for Prometheus metrics "scraping".
+available for Prometheus metrics "scraping" or sends it to an InfluxDB database.
 """
-
-os.chdir(sys.path[0])            # Set current directory to script directory
 
 accessfname = "api_access.json"           # File with API access info in JSON format
 namespace = {'ns': 'http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measCollec'}
@@ -24,8 +21,38 @@ namespace = {'ns': 'http://www.3gpp.org/ftp/specs/archive/32_series/32.435#measC
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
 
+os.chdir(sys.path[0])            # Set current directory to script directory
+
+
+def logevent(logtext):
+    """
+    Writes time stamp plus text into event log file.
+
+    Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
+    If an exception occurs, nothing is done (pass).
+    """
+    try:
+        if os.path.exists(eventlogfname):
+            with open(eventlogfname, "r") as f:
+                lines = f.read().splitlines()
+            newlines = lines[-eventlogsize:]
+        else:
+            newlines = []
+
+        with open(eventlogfname, "w") as f:
+            for line in newlines:
+                f.write(line + "\n")
+            now = datetime.now()
+            date_time = now.strftime("%Y/%m/%d %H:%M:%S")
+            f.write(date_time + " expeca-ep5g-pm-collector: " + logtext + "\n")
+    except:
+        pass
+
+    return
+
 
 def extract_xml_from_tarball(tarball_binary):
+    """Extracts XML files from a tarball, and returns a list of XML contents, one per file"""
     xml_list = []
 
     # Create a file-like object from the binary input
@@ -46,28 +73,8 @@ def extract_xml_from_tarball(tarball_binary):
     return xml_list
 
 
-# Writes time stamp plus text into event log file
-def logevent(logtext):
-
-    try:
-        with open(eventlogfname, "r") as f:
-            lines = f.read().splitlines()
-        newlines = lines[-eventlogsize:]
-    except:
-        newlines = []
-
-    with open(eventlogfname, "w") as f:
-        for line in newlines:
-            f.write(line + "\n")
-        now = datetime.now()
-        date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-        f.write(date_time + " " + logtext + "\n")
-
-    return
-
-
-# Function to extract measurements from measInfo
 def extract_measurements(meas_info):
+    """Function to extract measurements from measInfo (XML content)"""
     meas_types = {mt.attrib['p']: mt.text for mt in meas_info.findall('ns:measType', namespace)}
     values = []
     for meas_value in meas_info.findall('ns:measValue', namespace):
@@ -84,13 +91,13 @@ def ep5g_readaccess(accessfname):
 
     Reads EP5G access information data from a JSON file.
     Input: Access info file name
-    Return: Dictionary with API access information, or exception
+    Return: Dictionary with API access information, or exception string
     """
     try:
         with open(accessfname, 'r') as f:
             return json.load(f)
     except Exception as e:
-        return e    
+        return e   
 
 
 def ep5g_get(accessinfo, tailurl, params=None):
@@ -106,91 +113,92 @@ def ep5g_get(accessinfo, tailurl, params=None):
     url = accessinfo["baseurl"] + "/organization/" + accessinfo["orgid"] + "/site/" + accessinfo["siteid"] + tailurl
     headers = {"x-api-key": accessinfo["key"]}
     try:
-        return requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
+        response.raise_for_status()
+        return response
     except Exception as e:
         return e
     
 
 def read_ep5g_pm(accessinfo):
-    """
-    Reads the "pm" metric from EP5G.
-    """
+    """Reads the "pm" metric from EP5G"""
     pm_list = []
-    response_ok = False
-    tailurl = "/pm"
 
-    now = datetime.now(timezone.utc) - timedelta(minutes=10)
-    minute = (now.minute // 15) * 15
-    current_quarter_hour = now.replace(minute=minute, second=0, microsecond=0)
-    previous_quarter_hour = current_quarter_hour - timedelta(minutes=15)
+    try:
+        tailurl = "/pm"
 
-    # Format the previous quarter hour as an RFC3339 timestamp
-    start = previous_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
-    end = current_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
+        now = datetime.now(timezone.utc) - timedelta(minutes=10)
+        minute = (now.minute // 15) * 15
+        current_quarter_hour = now.replace(minute=minute, second=0, microsecond=0)
+        previous_quarter_hour = current_quarter_hour - timedelta(minutes=15)
 
-    query_params = {
-        "start": start,
-        "end"  : end, 
-    }
-    
-    apiresponse = ep5g_get(accessinfo, tailurl, query_params)
-    
-    if type(apiresponse) is requests.models.Response:
-        if apiresponse.ok:
-            xmlstrs = extract_xml_from_tarball(apiresponse.content)
-            meas_list = []
+        # Format the previous quarter hour as an RFC3339 timestamp
+        start = previous_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
+        end = current_quarter_hour.replace(tzinfo=None).isoformat() + "Z"
 
-            for xmlstr in xmlstrs:
-                root = ET.fromstring(xmlstr)
+        query_params = {
+            "start": start,
+            "end"  : end, 
+        }
+        
+        apiresponse = ep5g_get(accessinfo, tailurl, query_params)
+        if isinstance(apiresponse, Exception):
+            logevent(str(apiresponse))
+            return pm_list
+        
+        xmlstrs = extract_xml_from_tarball(apiresponse.content)
+        meas_list = []
 
-                # Extract data from measData
-                for meas_info in root.findall('.//ns:measInfo', namespace):
-                    meas_info_id = meas_info.attrib['measInfoId']
-                    job_id = meas_info.find('ns:job', namespace).attrib['jobId']
-                    period = meas_info.find('ns:granPeriod', namespace).attrib['duration']
-                    end_time = meas_info.find('ns:granPeriod', namespace).attrib['endTime']
-                    measurements = extract_measurements(meas_info)
-                    for measurement in measurements:
-                        measurement.update({
-                            'measInfoId': meas_info_id,
-                            # 'jobId': job_id,
-                            # 'granPeriod': period,
-                            # 'endTime': end_time
-                        })
-                        meas_list.append(measurement)
+        # numfiles = len(xmlstrs)
 
-            response_ok = True
-        else:
-            print("#", "Response status code:")
-            print("#", apiresponse.status_code)
-            logevent("expeca-ep5g-pm-collector: Response status code: " + str(apiresponse.status_code))
-    else:
-        print("#", "Exception:")
-        print("#", type(apiresponse))
-        print("#", apiresponse)
-        logevent("expeca-ep5g-pm-collector: Exception: " + str(apiresponse))
+        for xmlstr in xmlstrs:
+            root = ET.fromstring(xmlstr)
 
-    if response_ok and meas_list != []:
+            # Extract data from measData
+            for meas_info in root.findall('.//ns:measInfo', namespace):
+                meas_info_id = meas_info.attrib['measInfoId']
+                job_id = meas_info.find('ns:job', namespace).attrib['jobId']
+                period = meas_info.find('ns:granPeriod', namespace).attrib['duration']
+                end_time = meas_info.find('ns:granPeriod', namespace).attrib['endTime']
 
-        for measurement in meas_list:
-            for key, values in measurement.items():
-                if (key != "measInfoId") and (key != "measObjLdn"):
-                    valuelist = values.split(',')
-                    for index, value in enumerate(valuelist):
-                        if value.strip() != "":
-                            pm_dict = {
-                                "metric_name": "expeca_ep5g_pm",
-                                "labels": {
-                                    "measInfoId": measurement["measInfoId"],
-                                    "measObjLdn": measurement["measObjLdn"],
-                                    "measName"  : key,
-                                    "index"     : index,
-                                },
-                                "value": value.strip()   # Use only first value if values are comma separated list
-                            }
+                dt = datetime.fromisoformat(end_time)
+                end_time = dt.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-                            pm_list.append(pm_dict)
+                measurements = extract_measurements(meas_info)
+                for measurement in measurements:
+                    measurement.update({
+                        'measInfoId': meas_info_id,
+                        # 'jobId': job_id,
+                        # 'granPeriod': period,
+                        'endTime': end_time
+                    })
+                    meas_list.append(measurement)
 
+
+        if meas_list != []:
+            for measurement in meas_list:
+                for key, values in measurement.items():
+                    if (key != "measInfoId") and (key != "measObjLdn") and (key != "endTime"):
+                        valuelist = values.split(',')
+                        for index, value in enumerate(valuelist):
+                            if value.strip() != "":
+                                pm_dict = {
+                                    "metric_name": "expeca_ep5g_pm",
+                                    "labels": {
+                                        "measInfoId": measurement["measInfoId"],
+                                        "measObjLdn": measurement["measObjLdn"],
+                                        "time"      : measurement["endTime"],
+                                        "measName"  : key,
+                                        "index"     : index,
+                                    },
+                                    "value": int(value.strip()) 
+                                }
+
+                                pm_list.append(pm_dict)
+
+    except Exception as e:
+        logevent(str(e))
+        
     return pm_list
 
 
@@ -200,6 +208,10 @@ def main():
     outp_list = []
     accessinfo = ep5g_readaccess(accessfname)
 
+    if isinstance(accessinfo, Exception):
+        logevent(str(accessinfo))
+        return
+        
     pm_list = read_ep5g_pm(accessinfo)
     outp_list.extend(pm_list)
 

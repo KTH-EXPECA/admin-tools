@@ -30,18 +30,20 @@ def logevent(logtext):
     Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
     If an exception occurs, nothing is done (pass).
     """
-
     try:
-        with open(eventlogfname, "r") as f:
-            lines = f.read().splitlines()
-        newlines = lines[-eventlogsize:]
+        if os.path.exists(eventlogfname):
+            with open(eventlogfname, "r") as f:
+                lines = f.read().splitlines()
+            newlines = lines[-eventlogsize:]
+        else:
+            newlines = []
 
         with open(eventlogfname, "w") as f:
             for line in newlines:
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " " + logtext + "\n")
+            f.write(date_time + " expeca-exporter: " + logtext + "\n")
     except:
         pass
 
@@ -59,6 +61,7 @@ def dict_to_lists(in_dict):
 
 
 def seconds_to_next_mark(polling_interval_minutes):
+    """Calculates the number of seconds to next 5-minute mark"""
     now = datetime.now()
     # Calculate the number of seconds since the last mark
     seconds_since_last_mark = (now.minute % polling_interval_minutes) * 60 + now.second
@@ -104,22 +107,16 @@ def main():
             pm_counter = 0
 
         for collector in config["collectors"]:
-            if collector["collector_name"] == "expeca-ep5g-pm-collector":   # Run this only every 15 minutes
-                if pm_counter != 1:
-                    continue
-
             try:
+                if collector["collector_name"] == "expeca-ep5g-pm-collector":   # Run this only every 15 minutes
+                    if pm_counter != 1:
+                        continue
+
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
-                collector_ok = True
-            except:
-                collector_ok = False
 
-            for metric in collector["metrics"]:
-                metric_dict[metric["metric_name"]].clear()
-
-
-            if collector_ok:
+                for metric in collector["metrics"]:
+                    metric_dict[metric["metric_name"]].clear()
 
                 for dataitem in datalist:
                     # Update Prometheus metrics
@@ -132,8 +129,10 @@ def main():
                             logevent("Label problem for metric " + dataitem["metric_name"])
                             # logevent("Config labels:", config_labels[dataitem["metric_name"]])
                             # logevent("Collector labels:", label_list)
-                        
 
+            except Exception as e:
+                logevent(str(e))    
+                            
         seconds_remaining = seconds_to_next_mark(polling_interval_minutes)
 
         # time.sleep(polling_interval_seconds)
