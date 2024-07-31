@@ -52,7 +52,7 @@
 
 |INTERFACE|INTERFACE NAME|IP          |INTERFACE SPEED|INTERFACE MTU|SEGMENT ID|
 |---------|--------------|------------|---------------|-------------|----------|
-|NI SFP   |sfp0          |10.30.1.6/24|10Gbps         |9000         |103       |
+|NI SFP   |sfp0          |10.30.10.6/24|10Gbps         |9000         |103       |
 |MANGO    |eth0          |10.30.1.5/24|1Gbps          |1500         |103       |
 
 <br/><br/>
@@ -91,7 +91,7 @@
 
 |INTERFACE|INTERFACE NAME|IP           |INTERFACE SPEED|INTERFACE MTU|SEGMENT ID|
 |---------|--------------|-------------|---------------|-------------|----------|
-|NI SFP   |sfp0          |10.30.1.12/24|10Gbps         |9000         |106       |
+|NI SFP   |sfp0          |10.30.10.12/24|10Gbps         |9000         |106       |
 |MANGO    |eth0          |10.30.1.11/24|1Gbps          |1500         |106       |
 
 <br/><br/>
@@ -130,7 +130,7 @@
 
 |INTERFACE|INTERFACE NAME|IP           |INTERFACE SPEED|INTERFACE MTU|SEGMENT ID|
 |---------|--------------|-------------|---------------|-------------|----------|
-|NI SFP   |sfp0          |10.30.1.18/24|10Gbps         |9000         |109       |
+|NI SFP   |sfp0          |10.30.10.18/24|10Gbps         |9000         |109       |
 |MANGO    |eth0          |10.30.1.17/24|1Gbps          |1500         |109       |
 
 <br/><br/>
