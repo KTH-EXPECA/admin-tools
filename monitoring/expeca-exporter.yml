@@ -78,6 +78,7 @@ collectors:
     - sdr
     - mode
     - ip
+    - type
 
 
 - collector_name: expeca-ep5g-collector

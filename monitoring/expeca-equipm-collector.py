@@ -151,7 +151,8 @@ def read_sdr_data(accessinfo):
                     "labels": {
                         "sdr": sdr["name"],
                         "mode": "mango",
-                        "ip": sdr["mango-ip"]
+                        "ip": sdr["mango-ip"],
+                        "type": responsedata["sdr_" + sdrnum + "_mango"]["type"]
                     },
                     "value": status
                 }
@@ -169,7 +170,8 @@ def read_sdr_data(accessinfo):
                     "labels": {
                         "sdr": sdr["name"],
                         "mode": "ni",
-                        "ip": sdr["ni-ip"]
+                        "ip": sdr["ni-ip"],
+                        "type": responsedata["sdr_" + sdrnum + "_ni"]["type"]
                     },
                     "value": status
                 }
