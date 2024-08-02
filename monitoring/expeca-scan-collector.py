@@ -20,6 +20,7 @@ SSHKEY = '/home/expeca/.ssh/id_rsa'
 def logevent(logtext):
     """
     Writes time stamp plus text into event log file.
+
     Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
     If an exception occurs, nothing is done (pass).
     """
@@ -36,7 +37,8 @@ def logevent(logtext):
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " expeca-scan-collector: " + logtext + "\n")
+            scriptname = os.path.basename(__file__)
+            f.write(date_time + " " + scriptname + ": " + logtext + "\n")
     except:
         pass
 

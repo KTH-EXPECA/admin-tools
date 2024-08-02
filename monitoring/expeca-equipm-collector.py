@@ -2,7 +2,7 @@ import requests
 import json
 import sys
 import os
-import datetime
+from datetime import datetime
 
 """
 This script is a "collector" script that reads equipment status from the ExPECA testbed
@@ -93,7 +93,8 @@ def logevent(logtext):
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " expeca-equipm-collector: " + logtext + "\n")
+            scriptname = os.path.basename(__file__)
+            f.write(date_time + " " + scriptname + ": " + logtext + "\n")
     except:
         pass
 

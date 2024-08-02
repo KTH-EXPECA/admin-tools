@@ -26,6 +26,7 @@ os.chdir(sys.path[0])            # Set current directory to script directory
 def logevent(logtext):
     """
     Writes time stamp plus text into event log file.
+
     Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
     If an exception occurs, nothing is done (pass).
     """
@@ -42,11 +43,13 @@ def logevent(logtext):
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " expeca-exporter-influxdb: " + logtext + "\n")
+            scriptname = os.path.basename(__file__)
+            f.write(date_time + " " + scriptname + ": " + logtext + "\n")
     except:
         pass
 
     return
+
 
 def dict_to_lists(in_dict):
     """Converts a dictionary to a key list and value list"""

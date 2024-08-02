@@ -38,7 +38,8 @@ def logevent(logtext):
                 f.write(line + "\n")
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
-            f.write(date_time + " expeca-ep5g-collector: " + logtext + "\n")
+            scriptname = os.path.basename(__file__)
+            f.write(date_time + " " + scriptname + ": " + logtext + "\n")
     except:
         pass
 
