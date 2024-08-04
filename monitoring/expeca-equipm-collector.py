@@ -180,7 +180,7 @@ def read_sdr_data(accessinfo):
                 sdr_data_list.append(sdr_data__dict)
 
         except Exception as e:
-            logevent(str(e))
+            logevent(sdr["name"] + ": " + str(e))
 
 
     return sdr_data_list
