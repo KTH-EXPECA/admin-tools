@@ -17,7 +17,7 @@ so that new collectors and/or metrics can be added easily.
 Usage: python3 expeca-exporter-influxdb.py &
 """
 
-configfname = "expeca-exporter-influxdb.yml"          # YAML file with collector config
+configfname = "expeca-exporter-influxdb-ep5gpm.yml"          # YAML file with collector config
 eventlogfname = "event.log"      # Output file that will have event message if the script used the "logevent" function
 eventlogsize = 3000              # Number of lines allowed in the event log. Oldest lines are cut.
 
