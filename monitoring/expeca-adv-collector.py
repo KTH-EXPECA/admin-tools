@@ -63,6 +63,7 @@ def logevent(logtext):
 
 
 def remove_lines_before_first_brace(input_string):
+    """Removes all lines of a multi-line string before the first '{' brace"""
     # Split the input string into individual lines
     lines = input_string.splitlines()
 

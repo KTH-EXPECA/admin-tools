@@ -99,20 +99,10 @@ def main():
             metric_dict[metric["metric_name"]] = metric_item
             config_labels[metric["metric_name"]] = metric["labels"]
 
-    pm_counter = 0   # Makes sure EP5G PM data is only fetched every 15 minutes
-
     while True:
-
-        pm_counter += 1
-        if pm_counter > 2:
-            pm_counter = 0
 
         for collector in config["collectors"]:
             try:
-                if collector["collector_name"] == "expeca-ep5g-pm-collector":   # Run this only every 15 minutes
-                    if pm_counter != 1:
-                        continue
-
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
 
