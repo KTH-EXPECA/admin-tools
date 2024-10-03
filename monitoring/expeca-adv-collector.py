@@ -81,10 +81,10 @@ def read_adv_config(adv):
     """Reads an Advantech router configuration"""
     advconfig_list = []
 
-    try:
-        advname = adv["name"]
-        ipaddr = adv["ipaddr"]
+    advname = adv["name"]
+    ipaddr = adv["ipaddr"]
 
+    try:
         # First part, run the router config shell script to get info
         # Run the shell script and capture the output
         result = subprocess.run(
@@ -111,7 +111,11 @@ def read_adv_config(adv):
 
                 advconfig_list.append(advconfig_dict)
 
+    except Exception as e:
+        logevent(advname + ": gen: " + str(e))
 
+
+    try:
         # Second part, get info via GET
         # Run GET corresponding to: curl "http://x.x.x.x:50500/?query=info"
 
@@ -129,7 +133,7 @@ def read_adv_config(adv):
                 "metric_name": "expeca_adv_config",
                 "labels": {
                     "advname": advname,
-                    "label1" : "Connection",
+                    "label1" : "1 - Active Connection",
                     "label2" : label2
                 },
                 "value": value2
@@ -137,9 +141,49 @@ def read_adv_config(adv):
 
             advconfig_list.append(advconfig_dict)       
 
+    except Exception as e:
+        logevent(advname + ": Act Conn: " + str(e))
+        
+
+    try:
+        # Third part, get band info via GET
+        # Run GET corresponding to: curl "http://x.x.x.x:50500/?query=bands&net=yyyyy"
+
+        for net in ["gw_band", "lte_band", "nsa_nr5g_band", "nr5g_band"]:
+            url = "http://" + ipaddr + ":50500/"
+            params = {
+                "query": "bands",
+                "net"  : net
+            }
+            response = requests.get(url, params=params, timeout=10)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+
+            response_text = response.text
+            lines = response_text.splitlines()
+
+            for line in lines:
+                if net in line:
+                    last_comma_index = line.rfind(',')
+    
+                    # Extract the substring after the last comma
+                    if last_comma_index != -1:
+                        bands = line[last_comma_index + 1:].strip()
+
+                        advconfig_dict = {
+                            "metric_name": "expeca_adv_config",
+                            "labels": {
+                                "advname": advname,
+                                "label1" : "2 - Configured Bands",
+                                "label2" : net
+                            },
+                            "value": bands
+                        }
+
+                        advconfig_list.append(advconfig_dict)                   
 
     except Exception as e:
-        logevent(str(e))
+        logevent(advname + ": Conf Bands: " + str(e))
+
 
     return advconfig_list
 
