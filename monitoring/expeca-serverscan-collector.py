@@ -67,89 +67,104 @@ hosts = {
         'port' : 22
     }                       
 }                             
-                              
-# Print a nice banner with information on which host we are about to scan
-# print("-" * 100)
-# print ("{:<20} {:<20} {:<10} {:<10} {:<15} {:<20}".format('HOST','IP','PORT','STATUS','SSH', 'PASSWORD'))
 
-outp_list = []
 
-for host in hosts:                                                       
-    remoteServer = host                                                  
-    port = hosts[host]['port']                                           
-                                                                         
+def main():
+
+    # Print a nice banner with information on which host we are about to scan
     # print("-" * 100)
-                                                                         
-    # We also put in some error handling for catching errors             
-    try:                                                                 
-        remoteServerIP  = socket.gethostbyname(remoteServer)             
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)         
-        sock.settimeout(0.5)                                             
-        result = sock.connect_ex((remoteServerIP, port))                 
-        sock.close()      
+    # print ("{:<20} {:<20} {:<10} {:<10} {:<15} {:<20}".format('HOST','IP','PORT','STATUS','SSH', 'PASSWORD'))
 
-        if result == 0:                                                  
-            resStr = 'Up'                                                
-        else:                                                            
-            resStr = 'Down'                                              
-        
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
+    outp_list = []
 
+    for host in hosts:
+        remoteServer = host
+        port = hosts[host]['port']
 
         try:
-            ssh.connect(remoteServerIP, disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}, username=USER, pkey=pkey)
-            resStrSSH = 'Success'
-
-            stdin, stdout, stderr = ssh.exec_command("sudo -n true")
-            result = stdout.channel.recv_exit_status()    # status is 0
+            remoteServerIP = socket.gethostbyname(remoteServer)
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(0.5)
+            result = sock.connect_ex((remoteServerIP, port))
+            sock.close()
 
             if result == 0:
-                resStrSUDO = 'is passwordless'
+                resStr = 'Up'
             else:
-                resStrSUDO = 'needs a password'
+                resStr = 'Down'
 
-        except (paramiko.ssh_exception.BadHostKeyException, paramiko.ssh_exception.AuthenticationException,
-            paramiko.ssh_exception.SSHException) as e:
-            resStrSSH = 'Fail'
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            pkey = paramiko.RSAKey.from_private_key_file(SSHKEY)
 
-    except KeyboardInterrupt:                                            
-        print("You pressed Ctrl+C")
-        sys.exit()        
-    except socket.gaierror:                                              
-        remoteServerIP = '-'                                             
-        resStr = 'Hostname not found'   
-        resStrSSH = '-'                             
-        resStrSUDO = '-'                             
-    except socket.error:                                                 
-        remoteServerIP = '-'                                             
-        resStr = 'Could not connect to server'   
-        resStrSSH = '-'                             
-        resStrSUDO = '-'               
-                                                                         
-    # print ("{:<20} {:<20} {:<10} {:<10} {:<15} {:<20}".format(remoteServer,remoteServerIP,port,resStr, resStrSSH, resStrSUDO))
+            try:
+                ssh.connect(
+                    remoteServerIP,
+                    username=USER,
+                    pkey=pkey,
+                    timeout=10,
+                    disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']}
+                )
+                resStrSSH = 'Success'
 
-    if resStr == "Up":
-        status = 1
-    else:
-        status = 0
+                try:
+                    stdin, stdout, stderr = ssh.exec_command("sudo -n true", timeout=5)
+                    result = stdout.channel.recv_exit_status()
 
-    outp = {
-        "metric_name": "expeca_server_status",
-        "labels": {
-            "remoteServer": remoteServer,
-            "remoteServerIP": remoteServerIP,
-            "port": port,
-            "resStr": resStr,
-            "resStrSSH": resStrSSH,
-            "resStrSUDO": resStrSUDO
-        },
-        "value": status
-    }
+                    if result == 0:
+                        resStrSUDO = 'is passwordless'
+                    else:
+                        resStrSUDO = 'needs a password'
+                except socket.timeout:
+                    resStrSUDO = 'SUDO command timed out'
+                except Exception as e:
+                    resStrSUDO = f'SUDO command failed: {str(e)}'
 
-    outp_list.append(outp)
-                                                                                         
-# print("-" * 100)
+            except (paramiko.ssh_exception.BadHostKeyException,
+                    paramiko.ssh_exception.AuthenticationException,
+                    paramiko.ssh_exception.SSHException,
+                    socket.timeout) as e:
+                resStrSSH = 'Fail'
+                resStrSUDO = '-'
 
-print(json.dumps(outp_list, indent = 4))
+        except KeyboardInterrupt:
+            print("You pressed Ctrl+C")
+            sys.exit()
+        except socket.gaierror:
+            remoteServerIP = '-'
+            resStr = 'Hostname not found'
+            resStrSSH = '-'
+            resStrSUDO = '-'
+        except socket.timeout:
+            remoteServerIP = '-'
+            resStr = 'Connection timed out'
+            resStrSSH = '-'
+            resStrSUDO = '-'
+        except Exception as e:
+            remoteServerIP = '-'
+            resStr = f'Error: {str(e)}'
+            resStrSSH = '-'
+            resStrSUDO = '-'
+
+        status = 1 if resStr == "Up" else 0
+
+        outp = {
+            "metric_name": "expeca_server_status",
+            "labels": {
+                "remoteServer": remoteServer,
+                "remoteServerIP": remoteServerIP,
+                "port": port,
+                "resStr": resStr,
+                "resStrSSH": resStrSSH,
+                "resStrSUDO": resStrSUDO
+            },
+            "value": status
+        }
+
+        outp_list.append(outp)
+
+    print(json.dumps(outp_list, indent=4))
+
+
+if __name__ == "__main__":
+    main()

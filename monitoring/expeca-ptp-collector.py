@@ -4,6 +4,7 @@ import json
 import paramiko
 from datetime import datetime
 from statistics import stdev
+import traceback
 
 """
 This script collects PTP metrics from all worker nodes. It does so by connecting from controller with SSH and then collects
@@ -67,32 +68,51 @@ USER     = 'expeca'
 PSW      = 'expeca'
 
 
-def logevent(logtext):
+def logevent(logtext: str, logtext2: Exception = None):
     """
-    Writes time stamp plus text into event log file.
+    Writes time stamp plus text or exception info into the event log file.
 
-    Writes time stamp plus text into event log file. If max number of lines are reached, old lines are cut.
-    If an exception occurs, nothing is done (pass).
+    If logtext2 is provided (an exception), writes the line number and exception text into the log file.
+    If logtext is a regular string, writes the text to the log file.
+    If the maximum number of lines is reached, old lines are cut.
+    If an exception occurs in this function, it is ignored (pass).
     """
     try:
+        # Check if the log file exists and read its content
         if os.path.exists(eventlogfname):
             with open(eventlogfname, "r") as f:
                 lines = f.read().splitlines()
-            newlines = lines[-eventlogsize:]
+            newlines = lines[-eventlogsize:]  # Keep only the most recent lines
         else:
             newlines = []
 
+        # Write the updated content back to the file
         with open(eventlogfname, "w") as f:
             for line in newlines:
                 f.write(line + "\n")
+            
             now = datetime.now()
             date_time = now.strftime("%Y/%m/%d %H:%M:%S")
             scriptname = os.path.basename(__file__)
-            f.write(date_time + " " + scriptname + ": " + logtext + "\n")
+            
+            # Write the log text (always required)
+            log_entry = f"{date_time} {scriptname}: {logtext}"
+            
+            # If logtext2 (exception) is provided, log the exception details
+            if logtext2 is not None:
+                if isinstance(logtext2, BaseException):
+                    tb = traceback.extract_tb(logtext2.__traceback__)
+                    last_traceback = tb[-1]  # Get the most recent traceback entry
+                    line_number = last_traceback.lineno
+                    exception_message = str(logtext2)
+                    log_entry += f" | Exception occurred on line {line_number}: {exception_message}"
+            
+            f.write(log_entry + "\n")
     except:
         pass
 
     return
+
 
 
 def main():
