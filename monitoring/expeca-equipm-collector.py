@@ -4,6 +4,7 @@ import sys
 import os
 from datetime import datetime
 import traceback
+import time
 
 """
 This script is a "collector" script that reads equipment status from the ExPECA testbed
@@ -200,7 +201,6 @@ def read_sdr_data(accessinfo):
 
         except Exception as e:
             logevent(sdr["name"] + ": " + str(e))
-
 
     return sdr_data_list
 
