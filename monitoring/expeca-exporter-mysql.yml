@@ -1,0 +1,116 @@
+polling_interval_minutes: 5
+mysql_host: "130.237.11.102"
+mysql_port: 3306
+mysql_user: "expeca"
+mysql_password: "expecaexpeca"
+mysql_database: "expeca"
+
+
+collectors:
+
+# - collector_name: expeca-ep5g-pm-collector
+#   metrics:
+#   - metric_name: expeca_ep5g_pm
+#     metric_descr: ExPECA Ericsson Private 5G PM Data
+#     metric_type: gauge
+#     labels:
+#     - measInfoId
+#     - measObjLdn
+#     - time
+#     - measName
+#     - index
+
+- collector_name: expeca-adv-collector
+  metrics:
+  - metric_name: expeca_adv_config
+    metric_descr: ExPECA Advantech Router Config
+    metric_type: gauge
+    labels:
+    - advname
+    - label1
+    - label2
+    
+
+# - collector_name: expeca-serverscan-collector
+#   metrics:
+#   - metric_name: expeca_server_status
+#     metric_descr: ExPECA Server Status
+#     metric_type: gauge
+#     labels:
+#     - remoteServer
+#     - remoteServerIP
+#     - port
+#     - resStr
+#     - resStrSSH
+#     - resStrSUDO
+    
+# - collector_name: expeca-scan-collector
+#   metrics:
+#   - metric_name: expeca_dev_status
+#     metric_descr: ExPECA Device Status
+#     metric_type: gauge
+#     labels:
+#     - host
+#     - ipaddress
+#     - port
+
+# - collector_name: expeca-ptp-collector
+#   metrics:
+#   - metric_name: expeca_ptp_hwstdoffset
+#     metric_descr: ExPECA PTP Offset between Hardware Clock and GM Clock in Nanoseconds - Std over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+#   - metric_name: expeca_ptp_hwmaxoffset
+#     metric_descr: ExPECA PTP Offset between Hardware Clock and GM Clock in Nanoseconds - Max over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+#   - metric_name: expeca_ptp_hwminoffset
+#     metric_descr: ExPECA PTP Offset between Hardware Clock and GM Clock in Nanoseconds - Min over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+#   - metric_name: expeca_ptp_swstdoffset
+#     metric_descr: ExPECA PTP Offset between OS Clock and GM Clock in Nanoseconds - Std over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+#   - metric_name: expeca_ptp_swmaxoffset
+#     metric_descr: ExPECA PTP Offset between OS Clock and GM Clock in Nanoseconds - Max over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+#   - metric_name: expeca_ptp_swminoffset
+#     metric_descr: ExPECA PTP Offset between OS Clock and GM Clock in Nanoseconds - Min over 5 minutes
+#     metric_type: gauge
+#     labels:
+#     - host
+
+
+# - collector_name: expeca-ep5g-collector
+#   metrics:
+#   - metric_name: expeca_ep5g_latency
+#     metric_descr: ExPECA Ericsson Private 5G Latency
+#     metric_type: gauge
+#     labels:
+#     - user
+#   - metric_name: expeca_ep5g_throughput
+#     metric_descr: ExPECA Ericsson Private 5G Throughput
+#     metric_type: gauge
+#     labels:
+#     - direction
+#   - metric_name: expeca_ep5g_imsi_datausage
+#     metric_descr: ExPECA Ericsson Private 5G Data Usage by IMSI
+#     metric_type: gauge
+#     labels:
+#     - imsi
+#     - direction
+
+
+
