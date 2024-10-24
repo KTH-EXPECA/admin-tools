@@ -12,8 +12,8 @@ import re
 
 
 """
-This script is an exporter for InfluxDB metrics.
-It takes metrics from "collector" scripts in JSON format, and pushes them to InfluxDB.
+This script is an exporter for MySQL metrics.
+It takes metrics from "collector" scripts in JSON format, and pushes them to MySQL.
 A config file in YAML format defines the collector scripts (separate Python scripts) and their corresponding metrics,
 so that new collectors and/or metrics can be added easily.
 Usage: python3 expeca-exporter-influxdb.py &
@@ -74,43 +74,54 @@ def logevent(logtext: str, logtext2: Exception = None):
 
 def dict_to_lists(in_dict):
     """Converts a dictionary to a key list and value list"""
-    keylist = []
-    valuelist = []
-    for key, value in in_dict.items():
-        keylist.append(key)
-        valuelist.append(value)
-    return keylist, valuelist
+    return list(in_dict.keys()), list(in_dict.values())
+    # keylist = []
+    # valuelist = []
+    # for key, value in in_dict.items():
+    #     keylist.append(key)
+    #     valuelist.append(value)
+    # return keylist, valuelist
+
 
 def seconds_to_next_mark(polling_interval_minutes):
     """Calculates the number of seconds remaining to the next x-minute mark on the clock"""
     now = datetime.now()
-    # Calculate the number of seconds since the last mark
     seconds_since_last_mark = (now.minute % polling_interval_minutes) * 60 + now.second
-    # Calculate the number of seconds to the next x-minute mark
     seconds_to_next_mark = polling_interval_minutes * 60 - seconds_since_last_mark
     return seconds_to_next_mark
 
 
 def is_valid_identifier(identifier):
+    """Checks if a string is a valid SQL identifier."""
     return re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", identifier) is not None
 
 def get_sql_type(py_value):
-    """
-    Determines the SQL data type based on the Python data type of the value.
-    """
-    if isinstance(py_value, int):
-        return "INT"
-    elif isinstance(py_value, float):
-        return "FLOAT"
-    elif isinstance(py_value, bool):
-        return "BOOLEAN"
-    elif isinstance(py_value, str):
-        # Choose VARCHAR with a maximum length, adjust as needed
-        return "VARCHAR(255)"
-    elif isinstance(py_value, bytes):
-        return "BLOB"
-    else:
+    """Determines the SQL data type based on the Python data type of the value."""
+    type_map = {
+        int: "INT",
+        float: "FLOAT",
+        bool: "BOOLEAN",
+        str: "VARCHAR(255)",
+        bytes: "BLOB",
+    }
+    
+    sql_type = type_map.get(type(py_value))
+    if sql_type is None:
         raise TypeError(f"Unsupported data type: {type(py_value)}")
+    return sql_type
+    # if isinstance(py_value, int):
+    #     return "INT"
+    # elif isinstance(py_value, float):
+    #     return "FLOAT"
+    # elif isinstance(py_value, bool):
+    #     return "BOOLEAN"
+    # elif isinstance(py_value, str):
+    #     # Choose VARCHAR with a maximum length, adjust as needed
+    #     return "VARCHAR(255)"
+    # elif isinstance(py_value, bytes):
+    #     return "BLOB"
+    # else:
+    #     raise TypeError(f"Unsupported data type: {type(py_value)}")
 
 def insert_mysql_data(cursor, table_name, labels, value):
     """
@@ -224,11 +235,13 @@ def main():
         mysql_password = config["mysql_password"]
         mysql_database = config["mysql_database"]
 
-    # MySQL metrics to collect
+    # Create a list of the labels for each metrics to collect
     config_labels = {}
     for collector in config["collectors"]:
         for metric in collector["metrics"]:
             config_labels[metric["metric_name"]] = metric["labels"]
+
+
 
     while True:
 
@@ -237,21 +250,25 @@ def main():
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
                 datalist = json.loads(result.stdout)
 
-                # with InfluxDBClient(url=influxdb_url, token=influxdb_token, org=influxdb_org) as client:
-                with mysql.connector.connect(host=mysql_host, user=mysql_user, password=mysql_password, database=mysql_database) as conn:
+                with mysql.connector.connect(host=mysql_host, user=mysql_user, password=mysql_password, database=mysql_database, port=mysql_port) as conn:
                     cursor = conn.cursor()
 
-                    # write_api = client.write_api(write_options=SYNCHRONOUS)
+                    # Clear the metric (drop the table) if the metric is clear-marked
+                    for metric in collector["metrics"]:
+                        if "metric_clear" in metric:
+                            if metric["metric_clear"] == "yes":
+                                drop_query = f'DROP TABLE IF EXISTS `{metric["metric_name"]}`'
+                                cursor.execute(drop_query)
 
+                    # Loop through all items in the collector output and insert into database
                     for dataitem in datalist:
                         label_list = list(dataitem["labels"].keys())
-                        if label_list == config_labels[dataitem["metric_name"]]:
+                        if label_list == config_labels[dataitem["metric_name"]]:     # If metric labels matches those in config file
                             insert_mysql_data(cursor, dataitem["metric_name"], dataitem["labels"], dataitem["value"])
-                            conn.commit()
                         else:
                             logevent("Label problem for metric " + dataitem["metric_name"])
-                            # logevent("Config labels:", config_labels[dataitem["metric_name"]])
-                            # logevent("Collector labels:", label_list)
+
+                    conn.commit()
                             
             except Exception as e:
                 logevent(str(e))

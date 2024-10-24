@@ -25,6 +25,7 @@ collectors:
   - metric_name: expeca_adv_config
     metric_descr: ExPECA Advantech Router Config
     metric_type: gauge
+    metric_clear: "yes"
     labels:
     - advname
     - label1
