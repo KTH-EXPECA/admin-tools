@@ -1,0 +1,236 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 56,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "mysql",
+        "uid": "d5d8ea12-56ee-4ea4-9ac8-3c0e7141dcb9"
+      },
+      "description": "",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Label 1"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 214
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Label 2"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 201
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 19,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 2,
+      "interval": "15m",
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "frameIndex": 23,
+        "showHeader": true,
+        "sortBy": []
+      },
+      "pluginVersion": "11.4.0-77868",
+      "targets": [
+        {
+          "dataset": "expeca",
+          "datasource": {
+            "type": "mysql",
+            "uid": "d5d8ea12-56ee-4ea4-9ac8-3c0e7141dcb9"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "rawQuery": true,
+          "rawSql": "SELECT\r\n  label1 AS \"Label 1\",\r\n  label2 AS \"Label 2\",\r\n  value AS \"Value\"\r\nFROM\r\n  expeca.expeca_adv_config\r\nWHERE advname = \"$Router\" \r\nORDER BY label1, label2\r\nLIMIT\r\n  200",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "parameters": [
+                  {
+                    "name": "label1",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "label2",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              },
+              {
+                "parameters": [
+                  {
+                    "name": "value",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "expeca_adv_config"
+        }
+      ],
+      "title": "Advantech Router Data",
+      "type": "table"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 40,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "advantech-01",
+          "value": "advantech-01"
+        },
+        "label": "Router",
+        "name": "Router",
+        "options": [
+          {
+            "selected": true,
+            "text": "advantech-01",
+            "value": "advantech-01"
+          },
+          {
+            "selected": false,
+            "text": "advantech-02",
+            "value": "advantech-02"
+          },
+          {
+            "selected": false,
+            "text": "advantech-03",
+            "value": "advantech-03"
+          },
+          {
+            "selected": false,
+            "text": "advantech-04",
+            "value": "advantech-04"
+          },
+          {
+            "selected": false,
+            "text": "advantech-05",
+            "value": "advantech-05"
+          },
+          {
+            "selected": false,
+            "text": "advantech-06",
+            "value": "advantech-06"
+          },
+          {
+            "selected": false,
+            "text": "advantech-07",
+            "value": "advantech-07"
+          },
+          {
+            "selected": false,
+            "text": "advantech-08",
+            "value": "advantech-08"
+          }
+        ],
+        "query": "advantech-01,advantech-02,advantech-03,advantech-04,advantech-05,advantech-06,advantech-07,advantech-08",
+        "type": "custom"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-5m",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Advantech Router Data",
+  "uid": "bdy8ukwjvdjpcc",
+  "version": 30,
+  "weekStart": ""
+}
