@@ -103,14 +103,4 @@ collectors:
     - direction
 
 
-# - collector_name: expeca-ep5g-pm-collector
-#   metrics:
-#   - metric_name: expeca_ep5g_pm
-#     metric_descr: ExPECA Ericsson Private 5G PM Data
-#     metric_type: gauge
-#     labels:
-#     - measInfoId
-#     - measObjLdn
-#     - measName
-#     - index
 
