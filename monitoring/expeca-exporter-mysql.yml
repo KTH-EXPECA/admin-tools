@@ -4,6 +4,7 @@ mysql_port: 3306
 mysql_user: "expeca"
 mysql_password: "expecaexpeca"
 mysql_database: "expeca"
+mysql_retention_days: 14
 
 
 collectors:

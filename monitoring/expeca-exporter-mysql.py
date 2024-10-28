@@ -97,31 +97,26 @@ def is_valid_identifier(identifier):
 
 def get_sql_type(py_value):
     """Determines the SQL data type based on the Python data type of the value."""
+    import datetime
+
+    # Map of Python types to SQL data types
     type_map = {
         int: "INT",
         float: "FLOAT",
         bool: "BOOLEAN",
         str: "VARCHAR(255)",
         bytes: "BLOB",
+        datetime.datetime: "DATETIME",
     }
-    
-    sql_type = type_map.get(type(py_value))
-    if sql_type is None:
-        raise TypeError(f"Unsupported data type: {type(py_value)}")
-    return sql_type
-    # if isinstance(py_value, int):
-    #     return "INT"
-    # elif isinstance(py_value, float):
-    #     return "FLOAT"
-    # elif isinstance(py_value, bool):
-    #     return "BOOLEAN"
-    # elif isinstance(py_value, str):
-    #     # Choose VARCHAR with a maximum length, adjust as needed
-    #     return "VARCHAR(255)"
-    # elif isinstance(py_value, bytes):
-    #     return "BLOB"
-    # else:
-    #     raise TypeError(f"Unsupported data type: {type(py_value)}")
+
+    # Check the type of py_value and return the corresponding SQL type
+    for py_type, sql_type in type_map.items():
+        if isinstance(py_value, py_type):
+            return sql_type
+
+    # If the type is not supported, raise an error
+    raise TypeError(f"Unsupported data type: {type(py_value)}")
+
 
 def insert_mysql_data(cursor, table_name, labels, value):
     """
@@ -224,6 +219,53 @@ def insert_mysql_data(cursor, table_name, labels, value):
         cursor.execute(insert_query, insert_values)
 
 
+def data_retention(cursor, table_list, time_column, retention_days):
+    # Validate the time column name
+    if not is_valid_identifier(time_column):
+        raise ValueError(f"Invalid column name: {time_column}")
+
+    for table in table_list:
+        # Validate the table name
+        if not is_valid_identifier(table):
+            raise ValueError(f"Invalid table name: {table}")
+
+        # Construct the SQL query
+        query = f"""
+            DELETE FROM `{table}`
+            WHERE `{time_column}` < (NOW() - INTERVAL %s DAY)
+        """
+
+        try:
+            # Execute the query with parameterized retention_days
+            cursor.execute(query, (retention_days,))
+            # cursor.connection.commit()
+        except Exception as e:
+            # cursor.connection.rollback()
+            # logevent(f"Error processing table {table}: {e}")
+            continue  # Proceed to the next table
+
+
+def datetime_decoder(obj):
+    for key, value in obj.items():
+        if isinstance(value, str):
+            try:
+                # Attempt to parse ISO 8601 format
+                obj[key] = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError:
+                pass  # Not a datetime string, leave it as is
+    return obj
+
+
+def column_exists(cursor, table_name, column_name):
+    """Checks if a column exists in a given MySQL table using DESCRIBE"""
+    try:
+        cursor.execute(f"DESCRIBE `{table_name}` `{column_name}`")
+        result = cursor.fetchone()
+        return result is not None
+    except mysql.connector.Error:
+        return False
+
+
 def main():
     # Read the exporter config YAML file
     with open(configfname) as f:
@@ -234,6 +276,7 @@ def main():
         mysql_user = config["mysql_user"]
         mysql_password = config["mysql_password"]
         mysql_database = config["mysql_database"]
+        mysql_retention_days = config["mysql_retention_days"]
 
     # Create a list of the labels for each metrics to collect
     config_labels = {}
@@ -242,13 +285,12 @@ def main():
             config_labels[metric["metric_name"]] = metric["labels"]
 
 
-
     while True:
 
         for collector in config["collectors"]:
             try:
                 result = sp.run([sys.executable, collector["collector_name"] + ".py"], capture_output=True, text=True, check=True)
-                datalist = json.loads(result.stdout)
+                datalist = json.loads(result.stdout, object_hook=datetime_decoder)
 
                 with mysql.connector.connect(host=mysql_host, user=mysql_user, password=mysql_password, database=mysql_database, port=mysql_port) as conn:
                     cursor = conn.cursor()
@@ -261,12 +303,19 @@ def main():
                                 cursor.execute(drop_query)
 
                     # Loop through all items in the collector output and insert into database
+                    table_list = []
                     for dataitem in datalist:
                         label_list = list(dataitem["labels"].keys())
                         if label_list == config_labels[dataitem["metric_name"]]:     # If metric labels matches those in config file
                             insert_mysql_data(cursor, dataitem["metric_name"], dataitem["labels"], dataitem["value"])
                         else:
                             logevent("Label problem for metric " + dataitem["metric_name"])
+
+                        if (dataitem["metric_name"] not in table_list) and ("time" in dataitem["labels"]):
+                            table_list.append(dataitem["metric_name"])
+                    
+                    # Delete data from concerned metrics / tables that is older than mysql_retention_days
+                    data_retention(cursor, table_list, "time", mysql_retention_days)
 
                     conn.commit()
                             
