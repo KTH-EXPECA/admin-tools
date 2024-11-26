@@ -3,7 +3,7 @@ polling_interval_minutes: 15
 exporter_port: 9000
 
 influxdb_url: "http://130.237.11.102:8086"
-influxdb_token: "uRUDk5uuQ7DmNhGmBEwFkWRW6ONRD9q7K8BPnMS9Bt1HiZwFBhQJ_iWWeYAG9iF51Rw3agfq66OICELKAty9Iw=="
+influxdb_token: "xxxxx"
 influxdb_org: "expeca"
 influxdb_bucket: "ep5gpm"
 

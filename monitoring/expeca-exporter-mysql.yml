@@ -2,7 +2,7 @@ polling_interval_minutes: 5
 mysql_host: "130.237.11.102"
 mysql_port: 3306
 mysql_user: "expeca"
-mysql_password: "expecaexpeca"
+mysql_password: "xxxxx"
 mysql_database: "expeca"
 mysql_retention_days: 14
 
