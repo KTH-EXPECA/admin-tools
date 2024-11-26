@@ -161,11 +161,22 @@ def read_sdr_data(accessinfo):
             responsedata = response.json()
 
             if responsedata != {}:
-                linkstate = responsedata["sdr_" + sdrnum + "_mango"]["linkstate"]
+                if "linkstate" in responsedata["sdr_" + sdrnum + "_mango"]:
+                    linkstate = responsedata["sdr_" + sdrnum + "_mango"]["linkstate"]
+                else:
+                    linkstate = "Unknown"
+
+                if "type" in responsedata["sdr_" + sdrnum + "_mango"]:
+                    type = responsedata["sdr_" + sdrnum + "_mango"]["type"]
+                else:
+                    type = "--"
+
                 if linkstate == "Up":
                     status = 1
-                else:
+                elif linkstate == "Down":
                     status = 0
+                else:
+                    status = -1
                     
                 sdr_data__dict = {
                     "metric_name": "expeca_sdr_status",
@@ -173,18 +184,29 @@ def read_sdr_data(accessinfo):
                         "sdr": sdr["name"],
                         "mode": "mango",
                         "ip": sdr["mango-ip"],
-                        "type": responsedata["sdr_" + sdrnum + "_mango"]["type"]
+                        "type": type
                     },
                     "value": status
                 }
 
                 sdr_data_list.append(sdr_data__dict)
 
-                linkstate = responsedata["sdr_" + sdrnum + "_ni"]["linkstate"]
+                if "linkstate" in responsedata["sdr_" + sdrnum + "_ni"]:
+                    linkstate = responsedata["sdr_" + sdrnum + "_ni"]["linkstate"]
+                else:
+                    linkstate = "Unknown"
+
+                if "type" in responsedata["sdr_" + sdrnum + "_ni"]:
+                    type = responsedata["sdr_" + sdrnum + "_ni"]["type"]
+                else:
+                    type = "--"
+
                 if linkstate == "Up":
                     status = 1
-                else:
+                elif linkstate == "Down":
                     status = 0
+                else:
+                    status = -1
 
                 sdr_data__dict = {
                     "metric_name": "expeca_sdr_status",
@@ -192,7 +214,7 @@ def read_sdr_data(accessinfo):
                         "sdr": sdr["name"],
                         "mode": "ni",
                         "ip": sdr["ni-ip"],
-                        "type": responsedata["sdr_" + sdrnum + "_ni"]["type"]
+                        "type": type
                     },
                     "value": status
                 }
