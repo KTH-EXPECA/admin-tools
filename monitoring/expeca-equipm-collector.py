@@ -178,18 +178,19 @@ def read_sdr_data(accessinfo):
                 else:
                     status = -1
                     
-                sdr_data__dict = {
-                    "metric_name": "expeca_sdr_status",
-                    "labels": {
-                        "sdr": sdr["name"],
-                        "mode": "mango",
-                        "ip": sdr["mango-ip"],
-                        "type": type
-                    },
-                    "value": status
-                }
+                if linkstate != "Unknown":
+                    sdr_data__dict = {
+                        "metric_name": "expeca_sdr_status",
+                        "labels": {
+                            "sdr": sdr["name"],
+                            "mode": "mango",
+                            "ip": sdr["mango-ip"],
+                            "type": type
+                        },
+                        "value": status
+                    }
 
-                sdr_data_list.append(sdr_data__dict)
+                    sdr_data_list.append(sdr_data__dict)
 
                 if "linkstate" in responsedata["sdr_" + sdrnum + "_ni"]:
                     linkstate = responsedata["sdr_" + sdrnum + "_ni"]["linkstate"]
@@ -208,18 +209,19 @@ def read_sdr_data(accessinfo):
                 else:
                     status = -1
 
-                sdr_data__dict = {
-                    "metric_name": "expeca_sdr_status",
-                    "labels": {
-                        "sdr": sdr["name"],
-                        "mode": "ni",
-                        "ip": sdr["ni-ip"],
-                        "type": type
-                    },
-                    "value": status
-                }
+                if linkstate != "Unknown":
+                    sdr_data__dict = {
+                        "metric_name": "expeca_sdr_status",
+                        "labels": {
+                            "sdr": sdr["name"],
+                            "mode": "ni",
+                            "ip": sdr["ni-ip"],
+                            "type": type
+                        },
+                        "value": status
+                    }
 
-                sdr_data_list.append(sdr_data__dict)
+                    sdr_data_list.append(sdr_data__dict)
 
         except Exception as e:
             logevent(sdr["name"] + ": " + str(e))
