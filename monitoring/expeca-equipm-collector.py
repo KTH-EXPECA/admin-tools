@@ -169,7 +169,7 @@ def read_sdr_data(accessinfo):
                 if "type" in responsedata["sdr_" + sdrnum + "_mango"]:
                     type = responsedata["sdr_" + sdrnum + "_mango"]["type"]
                 else:
-                    type = "--"
+                    type = "10G-Copper"
 
                 if linkstate == "Up":
                     status = 1
@@ -178,19 +178,18 @@ def read_sdr_data(accessinfo):
                 else:
                     status = -1
                     
-                if linkstate != "Unknown":
-                    sdr_data__dict = {
-                        "metric_name": "expeca_sdr_status",
-                        "labels": {
-                            "sdr": sdr["name"],
-                            "mode": "mango",
-                            "ip": sdr["mango-ip"],
-                            "type": type
-                        },
-                        "value": status
-                    }
+                sdr_data__dict = {
+                    "metric_name": "expeca_sdr_status",
+                    "labels": {
+                        "sdr": sdr["name"],
+                        "mode": "mango",
+                        "ip": sdr["mango-ip"],
+                        "type": type
+                    },
+                    "value": status
+                }
 
-                    sdr_data_list.append(sdr_data__dict)
+                sdr_data_list.append(sdr_data__dict)
 
                 if "linkstate" in responsedata["sdr_" + sdrnum + "_ni"]:
                     linkstate = responsedata["sdr_" + sdrnum + "_ni"]["linkstate"]
@@ -200,7 +199,7 @@ def read_sdr_data(accessinfo):
                 if "type" in responsedata["sdr_" + sdrnum + "_ni"]:
                     type = responsedata["sdr_" + sdrnum + "_ni"]["type"]
                 else:
-                    type = "--"
+                    type = "10G-Fiber"
 
                 if linkstate == "Up":
                     status = 1
@@ -209,19 +208,18 @@ def read_sdr_data(accessinfo):
                 else:
                     status = -1
 
-                if linkstate != "Unknown":
-                    sdr_data__dict = {
-                        "metric_name": "expeca_sdr_status",
-                        "labels": {
-                            "sdr": sdr["name"],
-                            "mode": "ni",
-                            "ip": sdr["ni-ip"],
-                            "type": type
-                        },
-                        "value": status
-                    }
+                sdr_data__dict = {
+                    "metric_name": "expeca_sdr_status",
+                    "labels": {
+                        "sdr": sdr["name"],
+                        "mode": "ni",
+                        "ip": sdr["ni-ip"],
+                        "type": type
+                    },
+                    "value": status
+                }
 
-                    sdr_data_list.append(sdr_data__dict)
+                sdr_data_list.append(sdr_data__dict)
 
         except Exception as e:
             logevent(sdr["name"] + ": " + str(e))
