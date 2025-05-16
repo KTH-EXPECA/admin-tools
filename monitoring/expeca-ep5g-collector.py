@@ -215,6 +215,7 @@ def read_ep5g_imsi_datausage(accessinfo):
     try:
         tailurl = "/nc/imsi"
         apiresponse = ep5g_get(accessinfo, tailurl)
+
         if isinstance(apiresponse, Exception):
             logevent(str(apiresponse))
             return imsi_datausage_list
@@ -224,50 +225,62 @@ def read_ep5g_imsi_datausage(accessinfo):
         if responsedata != {}:
             for imsi_item in responsedata:
                 imsi = imsi_item["imsi"]
+                # print(imsi)
                 tailurl = "/nc/imsi/" + imsi + "/datausage?timespan=1"
                 apiresponse = ep5g_get(accessinfo, tailurl)
                 if isinstance(apiresponse, Exception):
                     logevent(str(apiresponse))
-                    return imsi_datausage_list        
+                    # return imsi_datausage_list  
+                    continue  # Skip this IMSI and move to the next one      
                 
-                responsedata = apiresponse.json()   # responsedata = dictionary or list of dictionaries
+                responsedata2 = apiresponse.json()   # responsedata = dictionary or list of dictionaries
 
-                if responsedata != {}:
-                    if responsedata:
-                        data_list = responsedata["downlink"]
-                        last_item = data_list[-1]
+                if responsedata2 != {}:
+                    if responsedata2:
+                        data_list = responsedata2.get("downlink", [])
+                        # if not data_list:
+                        #     print(f"No downlink data for IMSI {imsi}")
+                        # else:
 
-                        dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
-                        dtnow = datetime.datetime.now()
-                        delta = dtnow - dt
+                        if data_list:
+                            last_item = data_list[-1]
 
-                        if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
-                            imsi_datausage_dict = {
-                                "metric_name": "expeca_ep5g_imsi_datausage",
-                                "labels": {
-                                    "imsi": imsi,
-                                    "direction": "downlink"
-                                },
-                                # "value": last_item["dataPoint"]
-                                "value": get_average(data_list[-5:])
-                            }
+                            dt = datetime.datetime.fromtimestamp(float(last_item["timeStamp"]))
+                            dtnow = datetime.datetime.now()
+                            delta = dtnow - dt
 
-                            imsi_datausage_list.append(imsi_datausage_dict)
+                            if (last_item["dataPoint"] != "") and (delta.total_seconds() < 600):
+                                imsi_datausage_dict = {
+                                    "metric_name": "expeca_ep5g_imsi_datausage",
+                                    "labels": {
+                                        "imsi": imsi,
+                                        "direction": "downlink"
+                                    },
+                                    # "value": last_item["dataPoint"]
+                                    "value": get_average(data_list[-5:])
+                                }
 
-                        data_list = responsedata["uplink"]
-                        last_item = data_list[-1]
-                        if last_item["dataPoint"] != "":
-                            imsi_datausage_dict = {
-                                "metric_name": "expeca_ep5g_imsi_datausage",
-                                "labels": {
-                                    "imsi": imsi,
-                                    "direction": "uplink"
-                                },
-                                # "value": last_item["dataPoint"]
-                                "value": get_average(data_list[-5:])
-                            }
+                                imsi_datausage_list.append(imsi_datausage_dict)
 
-                            imsi_datausage_list.append(imsi_datausage_dict)
+                        data_list = responsedata2.get("uplink", [])
+                        # if not data_list:
+                        #     print(f"No uplink data for IMSI {imsi}")
+                        # else:
+
+                        if data_list:
+                            last_item = data_list[-1]
+                            if last_item["dataPoint"] != "":
+                                imsi_datausage_dict = {
+                                    "metric_name": "expeca_ep5g_imsi_datausage",
+                                    "labels": {
+                                        "imsi": imsi,
+                                        "direction": "uplink"
+                                    },
+                                    # "value": last_item["dataPoint"]
+                                    "value": get_average(data_list[-5:])
+                                }
+
+                                imsi_datausage_list.append(imsi_datausage_dict)
 
     except Exception as e:
         logevent(str(e))    

@@ -211,7 +211,7 @@ def read_ep5g_pm(accessinfo):
                                         "measName"  : key,
                                         "index"     : index,
                                     },
-                                    "value": int(value.strip()) 
+                                    "value": int(float(value.strip())) 
                                 }
 
                                 pm_list.append(pm_dict)
