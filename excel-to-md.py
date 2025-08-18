@@ -161,16 +161,16 @@ def excel_to_md(sheet):
 
 def main():
 
-    # infname = "A:/Documents/expeca/lab-inventory/ExPECA-HW-Discovery.xlsx"  # Input Excel file name, full path
-    # outfname = "A:/Documents/expeca/lab-inventory/inventory.md"      # Output markdown file name, full path
+    infname = "A:/Documents/GitHub/admin-tools/ExPECA-HW-Discovery.xlsx"  # Input Excel file name, full path
+    outfname = "A:/Documents/GitHub/admin-tools/inventory.md"      # Output markdown file name, full path
 
     # Command line input parameters
     # It has to be 2 command line parameters
-    argc = len(sys.argv)
-    if argc != 3:
-        exit(0)  
-    infname = sys.argv[1]                             # Input Excel file name, full path
-    outfname = sys.argv[2]                            # Output markdown file name, full path
+    # argc = len(sys.argv)
+    # if argc != 3:
+    #     exit(0)  
+    # infname = sys.argv[1]                             # Input Excel file name, full path
+    # outfname = sys.argv[2]                            # Output markdown file name, full path
 
     linelist = []
     linelist.append("# Hardware Discovery")
