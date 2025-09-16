@@ -170,6 +170,7 @@ def read_ep5g_pm(accessinfo):
         meas_list = []
 
         # numfiles = len(xmlstrs)
+        # logevent(numfiles)
 
         for xmlstr in xmlstrs:
             root = ET.fromstring(xmlstr)
