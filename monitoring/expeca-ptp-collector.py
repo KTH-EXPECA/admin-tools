@@ -136,7 +136,7 @@ def main():
                 client.connect(hostname=HOSTIP, username=USER, password=PSW)
             except:
                 logevent("Connect to host " + host_item["hostname"] + " failed")
-                break
+                continue
 
             command = "cat /var/log/syslog | grep ptp4l | grep 'master offset' | tail -n 720"
             stdin, stdout, stderr = client.exec_command(command)              # Execute command in worker node
